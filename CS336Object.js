@@ -1,4 +1,5 @@
 import "./util/cs336util.js";
+import "./three.js";
 
 /**
  * Encapsulation of scale, rotation, and position of a 3D object.
@@ -7,7 +8,7 @@ import "./util/cs336util.js";
  * has a list of child objects and a hook, drawFunction, for rendering the
  * object and then recursively rendering all the child objects.
  */
- var CS336Object = function({ drawObject, light, texture } = { drawObject: false, light: false, texture: null }) // default values
+ var CS336Object = function({ drawObject, light, texture, model } = { drawObject: false, light: false, texture: null, model: null }) // default values
  {
    // children of this object
    this.children = [];
@@ -54,7 +55,44 @@ import "./util/cs336util.js";
       lastLightCount: null,
       shaderProgram: null,
    }
+
+   /**
+    return {
+      numVertices: count,
+      vertices: verticesArray,
+      normals: normalsArray,
+      vertexNormals: vertexNormalsArray,
+      texCoords: texCoordArray
+    }
+    */
+   this.modelAttributes = model ? { ...model } : null;
+   this.modelBuffers = loadModelBuffers();
  };
+
+ CS336Object.prototype.loadModelBuffers = () => {
+    if (!this.modelAttributes) {
+      return;
+    }
+
+    const {
+      vertices,
+      normals,
+      vertexNormals,
+      texCoords,
+    } = this.modelAttributes;
+
+    const vertexBuffer = createAndLoadBuffer(vertices);
+    const faceNormalBuffer = createAndLoadBuffer(normals);
+    const vertexNormalBuffer = createAndLoadBuffer(vertexNormals);
+    const texCoordBuffer = createAndLoadBuffer(texCoords);
+
+    return {
+      vertexBuffer,
+      faceNormalBuffer,
+      vertexNormalBuffer,
+      texCoordBuffer,
+    }
+ }
  
  /**
   * Adds the given CS336Object to this object's list of children.
@@ -130,7 +168,7 @@ import "./util/cs336util.js";
    // clone and update the world matrix
    var current = new THREE.Matrix4().copy(worldMatrix).multiply(this.getMatrix());
  
-   // render if want to draw this object
+   // render if we want to draw this object
    if (this.drawObject) await this.renderSelf(current, lightCount);
  
    // recurse through children, who will use the current matrix
@@ -150,7 +188,7 @@ import "./util/cs336util.js";
   * @param lightCount
   *  The number of lights in the scene 
   */
- CS336Object.prototype.renderSelf = async (gl, worldMatrix, lightCount) => {
+ CS336Object.prototype.renderSelf = async function(gl, worldMatrix, lightCount) {
   if (this.texture && this.modelTexture === null) this.modelTexture = await loadImagePromise(this.texture);
 
   const { lastLightCount } = this.shaderAttributes;
@@ -173,10 +211,23 @@ import "./util/cs336util.js";
     console.log("Failed to get the storage location of a_Normal");
     return;
   }
+  const texCoordIndex = gl.getAttribLocation(shaderProgram, "a_TexCoord");
+  if (texCoordIndex < 0) {
+    console.log("Failed to get the storage location of a_TexCoord");
+    return;
+  }
   gl.enableVertexAttribArray(positionIndex);
   gl.enableVertexAttribArray(normalIndex);
+  gl.enableVertexAttribArray(texCoordIndex);
 
-  // load and store this object's vertex data
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.modelBuffers.vertexBuffer);
+  gl.vertexAttribPointer(positionIndex, 3, gl.FLOAT, false, 0, 0);
+  //gl.bindBuffer(gl.ARRAY_BUFFER, this.modelBuffers.faceNormalBuffer);
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.modelBuffers.vertexNormalBuffer);
+  gl.vertexAttribPointer(normalIndex, 3, gl.FLOAT, false, 0, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.modelBuffers.texCoordBuffer);
+  gl.vertexAttribPointer(texCoordIndex, 2, gl.FLOAT, false, 0, 0);
+
 
   // set view and projection matrices
 

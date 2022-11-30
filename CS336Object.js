@@ -1,3 +1,5 @@
+import "./util/cs336util.js";
+
 /**
  * Encapsulation of scale, rotation, and position of a 3D object.
  * The object's transformation matrix is defined as the product of
@@ -5,14 +7,16 @@
  * has a list of child objects and a hook, drawFunction, for rendering the
  * object and then recursively rendering all the child objects.
  */
- var CS336Object = function(drawFunction)
+ var CS336Object = function({ drawObject, texture } = { drawObject: false, texture: null }) // default values
  {
    // children of this object
    this.children = [];
  
-   // if caller doesn't supply a function, use an empty one
-   // for dummy objects
-   this.drawObject = drawFunction || function(){};
+   // Signify if we need to draw this object or not
+   this.drawObject = drawObject || false;
+
+   // Texture to draw with
+   this.texture = texture || null;
  
    // Position of this object.
    this.position = new THREE.Vector3();
@@ -49,21 +53,69 @@
   * @param matrixWorld
   *   frame transformation for this object's parent
   */
- CS336Object.prototype.render = function(matrixWorld)
+ CS336Object.prototype.render = function(matrixWorld, worldLightingShader)
  {
    // clone and update the world matrix
    var current = new THREE.Matrix4().copy(matrixWorld).multiply(this.getMatrix());
  
    // invoke callback (possibly empty)
-   this.drawObject(current);
+   //this.drawObject(current);
+   if (this.drawObject) this.renderSelf(current, worldLightingShader);
  
    // recurse through children, who will use the current matrix
    // as their "world"
    for (var i = 0; i < this.children.length; ++i)
    {
-     this.children[i].render(current);
+     this.children[i].render(current, worldLightingShader);
    }
  };
+
+ CS336Object.prototype.renderSelf = async (worldMatrix, lightCount) => {
+  // build vertex shader based off texture and world lights
+  var modelTexture;
+  var vertexShader;
+  if (this.texture) {
+    modelTexture = await loadImagePromise(this.texture);
+  }
+  vertexShader = this.createVertexShader(lightCount);
+ };
+
+ CS336Object.prototype.createVertexShader = lightCount => {
+  return `
+    #define MAX_LIGHTS ${lightCount}
+
+    uniform mat4 model;
+    uniform mat4 view;
+    uniform mat4 projection;  
+    uniform mat4 normalMatrix;
+
+    uniform vec4 lightPosition[MAX_LIGHTS];
+
+    attribute vec4 a_Position;
+    attribute vec3 a_Normal;
+    ${this.texture ? "attribute vec2 a_TexCoord;" : ""}
+
+    varying vec3 fL[MAX_LIGHTS];
+    varying vec3 fN;
+    varying vec3 fV;
+    ${this.texture ? "varying vec2 fTexCoord;" : ""}
+
+    void main() {
+      vec4 posEye = view * model * a_Position;
+
+      for (int i = 0; i < MAX_LIGHTS; i++) {
+        vec4 lightEye = view * lightPosition[i];
+        fL[i] = (lightEye - posEye).xyz;
+      }
+
+      fN = normalMatrix * a_Normal;
+      fV = normalize(-(posEye).xyz);
+
+      ${this.texture ? "fTexCoord = a_TexCoord;" : ""}
+      gl_Position = projection * view * model * a_Position;
+    }
+  `;
+ }
  
  /**
   * Sets the position.

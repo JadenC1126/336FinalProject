@@ -13,13 +13,15 @@ import "./util/cs336util.js";
    this.children = [];
  
    // Signify if we need to draw this object or not
-   this.drawObject = drawObject || false;
+   this.drawObject = drawObject;
 
    // signify if this is a light source 
    this.light = light || false;
 
    // Texture to draw with
-   this.texture = texture || null;
+   this.texture = texture;
+   // Model texture
+   this.modelTexture = null;
  
    // Position of this object.
    this.position = new THREE.Vector3();
@@ -42,6 +44,12 @@ import "./util/cs336util.js";
    // scale is changed.
    this.matrix = null;
    this.matrixNeedsUpdate = true;
+
+   // Shader attributes
+   this.shaderAttributes = {
+      lastLightCount: null,
+      shaderProgram: null,
+   }
  };
  
  /**
@@ -106,36 +114,85 @@ import "./util/cs336util.js";
  /**
   * Renders this object using the drawObject callback function and recursing
   * through the children.
-  * @param matrixWorld
+  * @param gl
+  *   The WebGL context
+  * @param worldMatrix
   *   frame transformation for this object's parent
+  * @param lightCount
+  *  number of lights in the scene
   */
- CS336Object.prototype.render = function(matrixWorld, worldLightingShader)
+ CS336Object.prototype.render = async function(gl, worldMatrix, lightCount)
  {
    // clone and update the world matrix
-   var current = new THREE.Matrix4().copy(matrixWorld).multiply(this.getMatrix());
+   var current = new THREE.Matrix4().copy(worldMatrix).multiply(this.getMatrix());
  
-   // invoke callback (possibly empty)
-   //this.drawObject(current);
-   if (this.drawObject) this.renderSelf(current, worldLightingShader);
+   // render if want to draw this object
+   if (this.drawObject) await this.renderSelf(current, lightCount);
  
    // recurse through children, who will use the current matrix
    // as their "world"
    for (var i = 0; i < this.children.length; ++i)
    {
-     this.children[i].render(current, worldLightingShader);
+     await this.children[i].render(current, lightCount);
    }
  };
 
- CS336Object.prototype.renderSelf = async (worldMatrix, lightCount) => {
-  // build vertex shader based off texture and world lights
-  var modelTexture;
-  var vertexShader;
-  if (this.texture) {
-    modelTexture = await loadImagePromise(this.texture);
-  }
-  vertexShader = this.createVertexShader(lightCount);
- };
+ /**
+  * Render the current object.
+  * @param gl 
+  *  The WebGL context
+  * @param worldMatrix
+  *  The world matrix 
+  * @param lightCount
+  *  The number of lights in the scene 
+  */
+ CS336Object.prototype.renderSelf = async (gl, worldMatrix, lightCount) => {
+  if (this.texture && this.modelTexture === null) this.modelTexture = await loadImagePromise(this.texture);
 
+  const { lastLightCount } = this.shaderAttributes;
+  if (lastLightCount === null || lastLightCount !== lightCount) {
+    this.shaderAttributes = {
+      lastLightCount: lightCount,
+      shaderProgram: createShaderProgram(gl, this.createVertexShader(lightCount), this.createFragmentShader(lightCount)),
+    }
+  }
+  const { shaderProgram } = this.shaderAttributes;
+  gl.useProgram(shaderProgram);
+
+  const positionIndex = gl.getAttribLocation(shaderProgram, "a_Position");
+  if (positionIndex < 0) {
+    console.log("Failed to get the storage location of a_Position");
+    return;
+  }
+  const normalIndex = gl.getAttribLocation(shaderProgram, "a_Normal");
+  if (normalIndex < 0) {
+    console.log("Failed to get the storage location of a_Normal");
+    return;
+  }
+  gl.enableVertexAttribArray(positionIndex);
+  gl.enableVertexAttribArray(normalIndex);
+
+  // load and store this object's vertex data
+
+  // set view and projection matrices
+
+  // set texture color attribs
+
+  // set light positions
+
+  // set model matrix
+
+  // set normal matrix
+
+  // draw
+ };
+/**
+ * Create a vertex shader based on the number of lights in the scene.
+ * @param lightCount 
+ *  The number of lights in the scene
+ * @returns
+ *  The vertex shader
+ */
  CS336Object.prototype.createVertexShader = lightCount => {
   return `
     #define MAX_LIGHTS ${lightCount}
@@ -172,6 +229,68 @@ import "./util/cs336util.js";
     }
   `;
  }
+
+ /**
+  * Creates a fragment shader based on the number of lights in the scene.
+  * @param lightCount
+  *   The number of lights in the scene 
+  * @returns 
+  *   The fragment shader
+  */
+ CS336Object.prototype.createFragmentShader = lightCount => {
+  return `
+    #define MAX_LIGHTS ${lightCount}
+
+    precision mediump float;
+
+    uniform mat3 materialProperties;
+    uniform mat3 lightProperties[MAX_LIGHTS];
+    uniform float shininess;
+    ${this.texture ? "uniform sampler2D sampler;" : ""}
+
+    varying vec3 fL[MAX_LIGHTS];
+    varying vec3 fN;
+    varying vec3 fV;
+    ${this.texture ? "varying vec2 fTexCoord;" : ""}
+
+    vec4 getColor(vec3 fL, mat3 lightProp, vec3 N, vec3 V) {
+      vec3 L = normalize(fL);
+      vec3 R = reflect(-L, N);
+
+      mat3 products = matrixCompMult(lightProp, materialProperties);
+      vec4 ambient = vec4(products[0], 1.0);
+      vec4 diffuse = vec4(products[1], 1.0);
+      vec4 specular = vec4(products[2], 1.0);
+
+      ${this.texture ? `
+        // Blend by texture alpha
+        vec4 texColor = texture2D(sampler, fTexCoord);
+        float m = texColor.a;
+        ambient = (1.0 - m) * ambient + m * texColor;
+        diffuse = (1.0 - m) * diffuse + m * texColor;
+        specular = (1.0 - m) * specular + m * texColor;
+      ` : ""}
+
+      float diffuseFactor = max(dot(L, N), 0.0);
+      float specularFactor = pow(max(dot(R, V), 0.0), shininess);
+
+      return specularFactor * specular + diffuseFactor * diffuse + ambient;
+    }
+
+    void main() {
+      vec3 N = normalize(fN);
+      vec3 V = normalize(fV);
+
+      vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
+      for (int i = 0; i < MAX_LIGHTS; i++) {
+        color += getColor(fL[i], lightProperties[i], N, V);
+      }
+
+      gl_FragColor = color / float(MAX_LIGHTS);
+      gl_FragColor.a = 1.0;
+    }
+  `;
+ };
  
  /**
   * Sets the position.

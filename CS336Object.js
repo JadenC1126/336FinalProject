@@ -18,8 +18,12 @@ import "./util/cs336util.js";
    // signify if this is a light source 
    this.light = light || false;
 
-   // Texture to draw with
+   // Texture to draw with, default is texture 2D
    this.texture = texture;
+
+   // texture object
+   this.textureObject = new CS336Texture("2D");
+
    // Model texture
    this.modelTexture = null;
  
@@ -246,7 +250,7 @@ import "./util/cs336util.js";
     uniform mat3 materialProperties;
     uniform mat3 lightProperties[MAX_LIGHTS];
     uniform float shininess;
-    ${this.texture ? "uniform sampler2D sampler;" : ""}
+    ${this.texture ? this.textureObject.uniformTextureDeclaration() : ""}
 
     varying vec3 fL[MAX_LIGHTS];
     varying vec3 fN;
@@ -264,7 +268,7 @@ import "./util/cs336util.js";
 
       ${this.texture ? `
         // Blend by texture alpha
-        vec4 texColor = texture2D(sampler, fTexCoord);
+        vec4 texColor = ${this.textureObject.texture_loader}(sampler, fTexCoord);
         float m = texColor.a;
         ambient = (1.0 - m) * ambient + m * texColor;
         diffuse = (1.0 - m) * diffuse + m * texColor;

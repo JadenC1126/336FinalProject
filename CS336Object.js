@@ -7,7 +7,7 @@ import "./util/cs336util.js";
  * has a list of child objects and a hook, drawFunction, for rendering the
  * object and then recursively rendering all the child objects.
  */
- var CS336Object = function({ drawObject, texture } = { drawObject: false, texture: null }) // default values
+ var CS336Object = function({ drawObject, light, texture } = { drawObject: false, light: false, texture: null }) // default values
  {
    // children of this object
    this.children = [];
@@ -15,11 +15,17 @@ import "./util/cs336util.js";
    // Signify if we need to draw this object or not
    this.drawObject = drawObject || false;
 
+   // signify if this is a light source 
+   this.light = light || false;
+
    // Texture to draw with
    this.texture = texture || null;
  
    // Position of this object.
    this.position = new THREE.Vector3();
+
+   // function to draw itself 
+   this.drawSelf = drawCube();
  
    // Rotation matrix.
    // The three columns of this matrix are the x, y, and z axes
@@ -46,6 +52,56 @@ import "./util/cs336util.js";
  {
    this.children.push(child);
  };
+
+ // helper function renders the cube based on the given model transformation
+ CS336Object.prototype.drawCube = function(matrix)
+{
+	  // bind the shader
+	  gl.useProgram(lightingShader);
+
+	  // get the index for the a_Position attribute defined in the vertex shader
+	  var positionIndex = gl.getAttribLocation(lightingShader, 'a_Position');
+	  if (positionIndex < 0) {
+	    console.log('Failed to get the storage location of a_Position');
+	    return;
+	  }
+
+	  var normalIndex = gl.getAttribLocation(lightingShader, 'a_Normal');
+	  if (normalIndex < 0) {
+		    console.log('Failed to get the storage location of a_Normal');
+		    return;
+		  }
+
+	  // "enable" the a_position attribute
+	  gl.enableVertexAttribArray(positionIndex);
+	  gl.enableVertexAttribArray(normalIndex);
+
+	  // bind data for points and normals
+	  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+	  gl.vertexAttribPointer(positionIndex, 3, gl.FLOAT, false, 0, 0);
+	  gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
+	  gl.vertexAttribPointer(normalIndex, 3, gl.FLOAT, false, 0, 0);
+	  gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+	  var loc = gl.getUniformLocation(lightingShader, "view");
+	  gl.uniformMatrix4fv(loc, false, view.elements);
+	  loc = gl.getUniformLocation(lightingShader, "projection");
+	  gl.uniformMatrix4fv(loc, false, projection.elements);
+	  loc = gl.getUniformLocation(lightingShader, "u_Color");
+	  gl.uniform4f(loc, 0.0, 1.0, 0.0, 1.0);
+    var loc = gl.getUniformLocation(lightingShader, "lightPosition");
+    gl.uniform4f(loc, 5.0, 10.0, 5.0, 1.0);
+
+	  var modelMatrixloc = gl.getUniformLocation(lightingShader, "model");
+	  var normalMatrixLoc = gl.getUniformLocation(lightingShader, "normalMatrix");
+
+	  gl.uniformMatrix4fv(modelMatrixloc, false, matrix.elements);
+	  gl.uniformMatrix3fv(normalMatrixLoc, false, makeNormalMatrixElements(matrix, view));
+
+	  gl.drawArrays(gl.TRIANGLES, 0, 36);
+
+	  gl.useProgram(null);
+}
  
  /**
   * Renders this object using the drawObject callback function and recursing

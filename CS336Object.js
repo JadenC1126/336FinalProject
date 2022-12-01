@@ -7,7 +7,10 @@
  * has a list of child objects and a hook, drawFunction, for rendering the
  * object and then recursively rendering all the child objects.
  */
-var CS336Object = function({ drawObject, light, texture, model, textureObj} = { drawObject: false, light: false, texture: true, model: null , textureObj: new CS336Texture("2D")}) // default values
+// solid color shaders
+// add material properties
+// cut down on details in the objects
+var CS336Object = function({ drawObject, light, texture, model, textureObj} = { drawObject: false, light: false, texture: true, model: null , materialProps: null, textureObj: new CS336Texture("2D")}) // default values
  {
    // children of this object
    this.children = [];
@@ -197,7 +200,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
  CS336Object.prototype.renderSelf = async function(gl, worldMatrix, lights, camera) {
   // if (this.texture && this.modelTexture === null) this.modelTexture = await loadImagePromise(this.texture);
   console.log("^^^^^");
-  if (this.texture && this.modelTexture == null){
+  if (this.texture && this.modelTexture == null){ // load once (cache)
     await this.textureObject.loadImage();
   }
   const { lastLightCount } = this.shaderAttributes;
@@ -237,7 +240,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
   // gl.bindBuffer(gl.ARRAY_BUFFER, this.modelBuffers.texCoordBuffer);
   // gl.vertexAttribPointer(texCoordIndex, 2, gl.FLOAT, false, 0, 0);
 
-  if (this.texture && this.modelTexture == null){
+  if (this.texture && this.modelTexture == null){ // redo on change only
     await this.textureObject.createAndLoad();
     this.modelTexture = this.textureObject.textureHandle;
   }
@@ -278,6 +281,8 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
  *  The vertex shader
  */
  CS336Object.prototype.createVertexShader = lightCount => {
+  // suport no light
+  // customize by given properties
   return `
     #define MAX_LIGHTS ${lightCount}
 

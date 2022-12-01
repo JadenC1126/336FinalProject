@@ -1,4 +1,4 @@
-class CS336Light {
+class CS336Light { // subtype of cs336 following camera
     DEFAULT_LIGHT_PROPERTIES = new Float32Array([
         0.2, 0.2, 0.2,
         0.7, 0.7, 0.7,

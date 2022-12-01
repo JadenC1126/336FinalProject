@@ -26,8 +26,7 @@ async function main() {
       drawObject: true,
       light: false,
       texture: false,
-      model: getModelData(modelObj),
-      textureObj: textureObject
+      model: getModelData(modelObj), // expand the model data
     });
     
     // load the data in the object to the buffers

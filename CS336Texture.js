@@ -1,9 +1,12 @@
-class CS336Texture {
+class CS336Texture { // THREE materials
     images = null;
     textureHandler = null;
     texture_type = null;
     texture_loader = null;
     imagePaths = null;
+
+    // solid vs not solid
+    
 
     // type can be either "2D" or "cube"
     constructor(type){

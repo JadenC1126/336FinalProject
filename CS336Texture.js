@@ -1,6 +1,9 @@
 class CS336Texture {
     images = null;
-    textureHandle = null;
+    textureHandler = null;
+    texture_type = null;
+    texture_loader = null;
+    imagePaths = null;
 
     // type can be either "2D" or "cube"
     constructor(type){
@@ -37,16 +40,16 @@ class CS336Texture {
 
     async createAndLoad(){
         if (this.type === "2D"){
-            this.textureHandle = createAndLoadTexture(this.images);
+            this.textureHandler = createAndLoadTexture(this.images);
         }
         else {
-            this.textureHandle = createAndLoadCubeTexture(this.images);
+            this.textureHandler = createAndLoadCubeTexture(this.images);
         }
         
     }
 
     get textureHandle(){
-        return this.textureHandle;
+        return this.textureHandler;
     }
     
 }

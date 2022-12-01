@@ -29,6 +29,7 @@ async function main() {
       model: getModelData(modelObj),
       textureObj: textureObject
     });
+    
     // load the data in the object to the buffers
     CSobject.loadModelBuffers();
     console.log(CSobject);

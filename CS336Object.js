@@ -262,17 +262,11 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
     loc = gl.getUniformLocation(shaderProgram, `lightProperties[${i}]`);
     gl.uniformMatrix3fv(loc, false, light.lightProperties);
   })
-
   gl.drawArrays(gl.TRIANGLES, 0, this.modelAttributes.numVertices);
 
   gl.disableVertexAttribArray(positionIndex);
   gl.disableVertexAttribArray(normalIndex);
   //gl.disableVertexAttribArray(texCoordIndex);
-
-  // draw
-  console.log("++++++++++++++++");
-  console.log(this.getMatrix().length);
-  //gl.drawArrays(gl.TRIANGLES, 0, this.getMatrix().length);
 
   gl.useProgram(null);
  };

@@ -234,10 +234,6 @@ var CS336Object = function({ drawObject, light, texture, model } = { drawObject:
   gl.bindBuffer(gl.ARRAY_BUFFER, this.modelBuffers.texCoordBuffer);
   gl.vertexAttribPointer(texCoordIndex, 2, gl.FLOAT, false, 0, 0);
 
-
-  // set view and projection matrices
-
-  // set texture color attribs
   if (this.texture && this.modelTexture == null){
     this.textureObject.createAndLoad();
     this.modelTexture = this.textureObject.textureHandle;
@@ -253,14 +249,7 @@ var CS336Object = function({ drawObject, light, texture, model } = { drawObject:
   gl.uniformMatrix4fv(loc, false, projection.elements);
   loc = gl.getUniformLocation(shaderProgram, "normalMatrix");
   gl.uniformMatrix3fv(loc, false, makeNormalMatrixElements(this.getMatrix(), view));
-
-  // set light positions
-
-  // set model matrix
-
-  // set normal matrix
-
-  // draw
+  
  };
 /**
  * Create a vertex shader based on the number of lights in the scene.

@@ -17,10 +17,14 @@ function main() {
     // using basic cube vertices 
     var modelObj = makeCube();
 
-    var CSobject = new CS336Object(true, false, textureObject, modelObj.vertices);
+    var CSobject = new CS336Object({
+      drawObject: true,
+      light: false,
+      model: modelObj,
+    });
     CSobject.loadModelBuffers();
 
-    CSobject.render(gl, new THREE.Matrix4(modelObj.vertices), 1);
+    CSobject.render(gl, new THREE.matrix4(), [], new Camera());
     // create model data
     // var cube = makeCube();
 

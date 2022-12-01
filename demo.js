@@ -2,6 +2,10 @@ var gl;
 
 var imagePath = "./textures/check64.png";
 
+var modelObj;
+var CSobject;
+var textureObject;
+
 function main() {
 
     // get graphics context
@@ -11,27 +15,20 @@ function main() {
     // window.onkeypress = handleKeyPress;
 
     // creat texture for object
-    var textureObject = new CS336Texture("2D");
+    textureObject = new CS336Texture("2D");
     textureObject.images = imagePath;
 
     // using basic cube vertices 
-    var modelObj = makeCube();
+    modelObj = makeCube();
 
-    var CSobject = new CS336Object(true, false, true, modelObj.vertices, textureObject);
+    // instantiate the object
+    CSobject = new CS336Object(true, false, true, modelObj.vertices, textureObject);
+
+    // load the data in the object to the buffers
     CSobject.loadModelBuffers();
 
+    // render the object
     CSobject.render(gl, new THREE.Matrix4(modelObj.vertices), 1);
-    // create model data
-    // var cube = makeCube();
-
-    // load and compile the shader pair
-    // lightingShader = createShaderProgram(gl, vLightingShaderSource, fLightingShaderSource);
-
-    // // load the vertex data into GPU memory
-    // vertexBuffer = createAndLoadBuffer(cube.vertices);
-
-    // // buffer for vertex normals
-    // vertexNormalBuffer = createAndLoadBuffer(cube.normals);
 
   // specify a fill color for clearing the framebuffer
   gl.clearColor(0.9, 0.9, 0.9, 1.0);
@@ -52,5 +49,6 @@ function main() {
 
 function draw()
 {
+    CSobject.render(gl, new THREE.Matrix4(modelObj.vertices), 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BIT);
 }

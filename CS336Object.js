@@ -13,7 +13,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
    this.children = [];
  
    // Signify if we need to draw this object or not
-   this.drawObject = drawObject;
+   this.drawObject = true;
 
    // signify if this is a light source 
    this.light = light || false;
@@ -171,16 +171,18 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
  CS336Object.prototype.render = async function(gl, worldMatrix, lights, camera)
  {
    // clone and update the world matrix
+  //  console.log("******");
    var current = new THREE.Matrix4().copy(worldMatrix).multiply(this.getMatrix());
  
    // render if we want to draw this object
+  //  console.log(this.drawObject);
    if (this.drawObject) await this.renderSelf(gl, current, lights, camera);
  
    // recurse through children, who will use the current matrix
    // as their "world"
-   for (var i = 0; i < this.children.length; ++i) {
-     await this.children[i].render(gl, current, lights, camera);
-   }
+  //  for (var i = 0; i < this.children.length; ++i) {
+  //    await this.children[i].render(gl, current, lights, camera);
+  //  }
  };
 
  /**
@@ -194,6 +196,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
   */
  CS336Object.prototype.renderSelf = async function(gl, worldMatrix, lights, camera) {
   // if (this.texture && this.modelTexture === null) this.modelTexture = await loadImagePromise(this.texture);
+  console.log("^^^^^");
   if (this.texture && this.modelTexture == null){
     this.textureObject.loadImage();
   }
@@ -261,6 +264,11 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
   // set normal matrix
 
   // draw
+  console.log("++++++++++++++++");
+  console.log(this.getMatrix().length);
+  gl.drawArrays(gl.TRIANGLES, 0, this.getMatrix().length);
+
+  gl.useProgram(null);
  };
 /**
  * Create a vertex shader based on the number of lights in the scene.
@@ -322,7 +330,8 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
     uniform mat3 materialProperties;
     uniform mat3 lightProperties[MAX_LIGHTS];
     uniform float shininess;
-    ${this.texture ? this.textureObject.uniformTextureDeclaration() : ""}
+    //${this.texture ? this.textureObject.uniformTextureDeclaration() : ""}
+    ${this.texture ? "uniform sampler2D sampler" : ""}
 
     varying vec3 fL[MAX_LIGHTS];
     varying vec3 fN;
@@ -339,8 +348,8 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
       vec4 specular = vec4(products[2], 1.0);
 
       ${this.texture ? `
-        // Blend by texture alpha
-        vec4 texColor = ${this.textureObject.texture_loader}(sampler, fTexCoord);
+        // Blend by texture alpha ${this.textureObject.texture_loader}
+        vec4 texColor = texture2D(sampler, fTexCoord);
         float m = texColor.a;
         ambient = (1.0 - m) * ambient + m * texColor;
         diffuse = (1.0 - m) * diffuse + m * texColor;

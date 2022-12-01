@@ -1,5 +1,5 @@
 class CS336Light {
-    static DEFAULT_LIGHT_PROPERTIES = new Float32Array([
+    DEFAULT_LIGHT_PROPERTIES = new Float32Array([
         0.2, 0.2, 0.2,
         0.7, 0.7, 0.7,
         0.7, 0.7, 0.7,
@@ -27,7 +27,7 @@ class CS336Light {
         }
     }
 
-    get lightProperties() {
-        return this.lightProperties;
-    }
+    // lightProperties() {
+    //     return this.lightProperties;
+    // }
 }

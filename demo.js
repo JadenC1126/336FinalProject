@@ -19,7 +19,7 @@ async function main() {
     textureObject.images = imagePath;
 
     // using basic cube vertices 
-    modelObj = makeCube();
+    modelObj = new THREE.SphereGeometry(1, 32, 32);
 
     // instantiate the object
     CSobject = new CS336Object({
@@ -31,6 +31,7 @@ async function main() {
     });
     // load the data in the object to the buffers
     CSobject.loadModelBuffers();
+    console.log(CSobject);
 
     const lights = [];
     lights.push(new CS336Light());

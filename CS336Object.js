@@ -198,7 +198,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
   // if (this.texture && this.modelTexture === null) this.modelTexture = await loadImagePromise(this.texture);
   console.log("^^^^^");
   if (this.texture && this.modelTexture == null){
-    this.textureObject.loadImage();
+    await this.textureObject.loadImage();
   }
   const { lastLightCount } = this.shaderAttributes;
   if (lastLightCount === null || lastLightCount !== lights.length) {
@@ -238,7 +238,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
   // gl.vertexAttribPointer(texCoordIndex, 2, gl.FLOAT, false, 0, 0);
 
   if (this.texture && this.modelTexture == null){
-    this.textureObject.createAndLoad();
+    await this.textureObject.createAndLoad();
     this.modelTexture = this.textureObject.textureHandle;
   }
 
@@ -262,17 +262,11 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
     loc = gl.getUniformLocation(shaderProgram, `lightProperties[${i}]`);
     gl.uniformMatrix3fv(loc, false, light.lightProperties);
   })
-
   gl.drawArrays(gl.TRIANGLES, 0, this.modelAttributes.numVertices);
 
   gl.disableVertexAttribArray(positionIndex);
   gl.disableVertexAttribArray(normalIndex);
   //gl.disableVertexAttribArray(texCoordIndex);
-
-  // draw
-  console.log("++++++++++++++++");
-  console.log(this.getMatrix().length);
-  //gl.drawArrays(gl.TRIANGLES, 0, this.getMatrix().length);
 
   gl.useProgram(null);
  };

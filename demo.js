@@ -29,6 +29,7 @@ async function main() {
       model: getModelData(modelObj),
       textureObj: textureObject
     });
+    
     // load the data in the object to the buffers
     CSobject.loadModelBuffers();
     console.log(CSobject);
@@ -60,5 +61,5 @@ async function main() {
 async function draw(lights)
 {
     await CSobject.render(gl, new THREE.Matrix4(), lights, new Camera());
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BIT);
+    // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BIT);
 }

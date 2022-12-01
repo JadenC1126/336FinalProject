@@ -220,22 +220,22 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
     console.log("Failed to get the storage location of a_Normal");
     return;
   }
-  const texCoordIndex = gl.getAttribLocation(shaderProgram, "a_TexCoord");
-  if (texCoordIndex < 0) {
-    console.log("Failed to get the storage location of a_TexCoord");
-    return;
-  }
+  // const texCoordIndex = gl.getAttribLocation(shaderProgram, "a_TexCoord");
+  // if (texCoordIndex < 0) {
+  //   console.log("Failed to get the storage location of a_TexCoord");
+  //   return;
+  // }
   gl.enableVertexAttribArray(positionIndex);
   gl.enableVertexAttribArray(normalIndex);
-  gl.enableVertexAttribArray(texCoordIndex);
+  //gl.enableVertexAttribArray(texCoordIndex);
 
   gl.bindBuffer(gl.ARRAY_BUFFER, this.modelBuffers.vertexBuffer);
   gl.vertexAttribPointer(positionIndex, 3, gl.FLOAT, false, 0, 0);
   //gl.bindBuffer(gl.ARRAY_BUFFER, this.modelBuffers.faceNormalBuffer);
   gl.bindBuffer(gl.ARRAY_BUFFER, this.modelBuffers.vertexNormalBuffer);
   gl.vertexAttribPointer(normalIndex, 3, gl.FLOAT, false, 0, 0);
-  gl.bindBuffer(gl.ARRAY_BUFFER, this.modelBuffers.texCoordBuffer);
-  gl.vertexAttribPointer(texCoordIndex, 2, gl.FLOAT, false, 0, 0);
+  // gl.bindBuffer(gl.ARRAY_BUFFER, this.modelBuffers.texCoordBuffer);
+  // gl.vertexAttribPointer(texCoordIndex, 2, gl.FLOAT, false, 0, 0);
 
   if (this.texture && this.modelTexture == null){
     this.textureObject.createAndLoad();
@@ -267,7 +267,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
 
   gl.disableVertexAttribArray(positionIndex);
   gl.disableVertexAttribArray(normalIndex);
-  gl.disableVertexAttribArray(texCoordIndex);
+  //gl.disableVertexAttribArray(texCoordIndex);
 
   // draw
   console.log("++++++++++++++++");

@@ -37,7 +37,10 @@ async function main() {
     lights.push(new CS336Light());
 
     // render the object
-    await CSobject.render(gl, new THREE.Matrix4(), lights, new Camera());
+    const camera = new Camera(30, 1.5);
+    camera.setPosition(0,2,5);
+    camera.lookAt(0,0,0);
+    await CSobject.render(gl, new THREE.Matrix4(), lights, camera);
 
 
   // specify a fill color for clearing the framebuffer
@@ -47,7 +50,7 @@ async function main() {
 
   // define an animation loop
   var animate = async function() {
-	await draw(lights);
+	await draw(lights, camera);
     requestAnimationFrame(animate);
   };
 
@@ -57,8 +60,7 @@ async function main() {
 
 }
 
-async function draw(lights)
+async function draw(lights, camera)
 {
-    await CSobject.render(gl, new THREE.Matrix4(), lights, new Camera());
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BIT);
+  await CSobject.render(gl, new THREE.Matrix4(), lights, camera);
 }

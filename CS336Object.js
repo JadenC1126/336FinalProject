@@ -76,14 +76,14 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
     const {
       vertices,
       normals,
-      // vertexNormals,
-      // texCoords,
+      vertexNormals,
+      texCoords,
     } = this.modelAttributes;
 
     const vertexBuffer = createAndLoadBuffer(vertices);
-    // const faceNormalBuffer = createAndLoadBuffer(normals);
+    const faceNormalBuffer = createAndLoadBuffer(normals);
     console.log("Load normal");
-    const vertexNormalBuffer = createAndLoadBuffer(normals);
+    const vertexNormalBuffer = createAndLoadBuffer(vertexNormals);
     let texCoordBufferTemp = null;
     if (this.texture){
       console.log("Load texture");
@@ -92,9 +92,9 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
     const texCoordBuffer = texCoordBufferTemp;
     this.modelBuffers = {
       vertexBuffer,
-      // faceNormalBuffer,
+      faceNormalBuffer,
       vertexNormalBuffer,
-      // texCoordBuffer,
+      texCoordBuffer,
     }
  }
  
@@ -198,7 +198,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
   // if (this.texture && this.modelTexture === null) this.modelTexture = await loadImagePromise(this.texture);
   console.log("^^^^^");
   if (this.texture && this.modelTexture == null){
-    this.textureObject.loadImage();
+    await this.textureObject.loadImage();
   }
   const { lastLightCount } = this.shaderAttributes;
   if (lastLightCount === null || lastLightCount !== lights.length) {
@@ -238,7 +238,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
   // gl.vertexAttribPointer(texCoordIndex, 2, gl.FLOAT, false, 0, 0);
 
   if (this.texture && this.modelTexture == null){
-    this.textureObject.createAndLoad();
+    await this.textureObject.createAndLoad();
     this.modelTexture = this.textureObject.textureHandle;
   }
 

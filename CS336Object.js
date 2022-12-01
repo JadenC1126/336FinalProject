@@ -164,19 +164,18 @@ import "./CS336Texture.js";
   * @param lightCount
   *  number of lights in the scene
   */
- CS336Object.prototype.render = async function(gl, worldMatrix, lightCount)
+ CS336Object.prototype.render = async function(gl, worldMatrix, lights, camera)
  {
    // clone and update the world matrix
    var current = new THREE.Matrix4().copy(worldMatrix).multiply(this.getMatrix());
  
    // render if we want to draw this object
-   if (this.drawObject) await this.renderSelf(current, lightCount);
+   if (this.drawObject) await this.renderSelf(gl, current, lights, camera);
  
    // recurse through children, who will use the current matrix
    // as their "world"
-   for (var i = 0; i < this.children.length; ++i)
-   {
-     await this.children[i].render(current, lightCount);
+   for (var i = 0; i < this.children.length; ++i) {
+     await this.children[i].render(gl, current, lights, camera);
    }
  };
 
@@ -189,7 +188,7 @@ import "./CS336Texture.js";
   * @param lightCount
   *  The number of lights in the scene 
   */
- CS336Object.prototype.renderSelf = async function(gl, worldMatrix, lightCount) {
+ CS336Object.prototype.renderSelf = async function(gl, worldMatrix, lights, camera) {
   // if (this.texture && this.modelTexture === null) this.modelTexture = await loadImagePromise(this.texture);
   if (this.texture && this.modelTexture == null){
     this.textureObject.loadImage();
@@ -198,7 +197,7 @@ import "./CS336Texture.js";
   if (lastLightCount === null || lastLightCount !== lightCount) {
     this.shaderAttributes = {
       lastLightCount: lightCount,
-      shaderProgram: createShaderProgram(gl, this.createVertexShader(lightCount), this.createFragmentShader(lightCount)),
+      shaderProgram: createShaderProgram(gl, this.createVertexShader(lights.length), this.createFragmentShader(lights.length)),
     }
   }
   const { shaderProgram } = this.shaderAttributes;
@@ -239,6 +238,17 @@ import "./CS336Texture.js";
     this.textureObject.createAndLoad();
     this.modelTexture = this.textureObject.textureHandle;
   }
+
+  const projection = camera.getProjection();
+  const view = camera.getView();
+  let loc = gl.getUniformLocation(shaderProgram, "model");
+  gl.uniformMatrix4fv(loc, false, this.getMatrix().elements);
+  loc = gl.getUniformLocation(shaderProgram, "view");
+  gl.uniformMatrix4fv(loc, false, view.elements);
+  loc = gl.getUniformLocation(shaderProgram, "projection");
+  gl.uniformMatrix4fv(loc, false, projection.elements);
+  loc = gl.getUniformLocation(shaderProgram, "normalMatrix");
+  gl.uniformMatrix3fv(loc, false, makeNormalMatrixElements(this.getMatrix(), view));
 
   // set light positions
 

@@ -6,7 +6,7 @@ var modelObj;
 var CSobject;
 var textureObject;
 
-function main() {
+async function main() {
 
     // get graphics context
     gl = getGraphicsContext("theCanvas");
@@ -32,8 +32,11 @@ function main() {
     // load the data in the object to the buffers
     CSobject.loadModelBuffers();
 
+    const lights = [];
+    lights.push(new CS336Light());
+
     // render the object
-    CSobject.render(gl, new THREE.Matrix4(), [], new Camera());
+    await CSobject.render(gl, new THREE.Matrix4(), lights, new Camera());
 
 
   // specify a fill color for clearing the framebuffer
@@ -42,8 +45,8 @@ function main() {
   gl.enable(gl.DEPTH_TEST);
 
   // define an animation loop
-  var animate = function() {
-	draw();
+  var animate = async function() {
+	await draw(lights);
     requestAnimationFrame(animate);
   };
 
@@ -53,8 +56,8 @@ function main() {
 
 }
 
-function draw()
+async function draw(lights)
 {
-    CSobject.render(gl, new THREE.Matrix4(), [], new Camera());
+    await CSobject.render(gl, new THREE.Matrix4(), lights, new Camera());
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BIT);
 }

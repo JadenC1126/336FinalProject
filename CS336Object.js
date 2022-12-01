@@ -7,7 +7,7 @@
  * has a list of child objects and a hook, drawFunction, for rendering the
  * object and then recursively rendering all the child objects.
  */
-var CS336Object = function({ drawObject, light, texture, model, textureObj} = { drawObject: false, light: false, texture: false, model: null , textureObj: new CS336Texture("2D")}) // default values
+var CS336Object = function({ drawObject, light, texture, model, textureObj} = { drawObject: false, light: false, texture: true, model: null , textureObj: new CS336Texture("2D")}) // default values
  {
    // children of this object
    this.children = [];
@@ -166,6 +166,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
  {
    // clone and update the world matrix
   //  console.log("******");
+  console.log(lights);
    var current = new THREE.Matrix4().copy(worldMatrix).multiply(this.getMatrix());
  
    // render if we want to draw this object
@@ -195,9 +196,9 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
     this.textureObject.loadImage();
   }
   const { lastLightCount } = this.shaderAttributes;
-  if (lastLightCount === null || lastLightCount !== lightCount) {
+  if (lastLightCount === null || lastLightCount !== lights.length) {
     this.shaderAttributes = {
-      lastLightCount: lightCount,
+      lastLightCount: lights.length,
       shaderProgram: createShaderProgram(gl, this.createVertexShader(lights.length), this.createFragmentShader(lights.length)),
     }
   }
@@ -266,7 +267,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
   // draw
   console.log("++++++++++++++++");
   console.log(this.getMatrix().length);
-  gl.drawArrays(gl.TRIANGLES, 0, this.getMatrix().length);
+  //gl.drawArrays(gl.TRIANGLES, 0, this.getMatrix().length);
 
   gl.useProgram(null);
  };
@@ -284,7 +285,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
     uniform mat4 model;
     uniform mat4 view;
     uniform mat4 projection;  
-    uniform mat4 normalMatrix;
+    uniform mat3 normalMatrix;
 
     uniform vec4 lightPosition[MAX_LIGHTS];
 

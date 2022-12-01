@@ -27,7 +27,7 @@ class CS336Light {
         }
     }
 
-    get lightProperties() {
-        return this.lightProperties;
-    }
+    // get lightProperties() {
+    //     return this.lightProperties;
+    // }
 }

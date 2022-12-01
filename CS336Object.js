@@ -19,7 +19,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
    this.light = light || false;
 
    // Texture to draw with, default is texture 2D
-   this.texture = texture;
+   this.texture = true;
 
    // texture object
    this.textureObject = textureObj;
@@ -76,20 +76,25 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
     const {
       vertices,
       normals,
-      vertexNormals,
-      texCoords,
+      // vertexNormals,
+      // texCoords,
     } = this.modelAttributes;
 
     const vertexBuffer = createAndLoadBuffer(vertices);
-    const faceNormalBuffer = createAndLoadBuffer(normals);
-    const vertexNormalBuffer = createAndLoadBuffer(vertexNormals);
-    const texCoordBuffer = createAndLoadBuffer(texCoords);
-
+    // const faceNormalBuffer = createAndLoadBuffer(normals);
+    console.log("Load normal");
+    const vertexNormalBuffer = createAndLoadBuffer(normals);
+    let texCoordBufferTemp = null;
+    if (this.texture){
+      console.log("Load texture");
+      // texCoordBufferTemp = createAndLoadBuffer(texCoords);
+    }
+    const texCoordBuffer = texCoordBufferTemp;
     this.modelBuffers = {
       vertexBuffer,
-      faceNormalBuffer,
+      // faceNormalBuffer,
       vertexNormalBuffer,
-      texCoordBuffer,
+      // texCoordBuffer,
     }
  }
  
@@ -255,7 +260,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
 
   lights.forEach((light, i) => {
     loc = gl.getUniformLocation(shaderProgram, `lightProperties[${i}]`);
-    gl.uniformMatrix4fv(loc, false, light.lightProperties())
+    gl.uniformMatrix3fv(loc, false, light.lightProperties);
   })
 
   gl.drawArrays(gl.TRIANGLES, 0, this.modelAttributes.numVertices);
@@ -332,7 +337,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
     uniform mat3 lightProperties[MAX_LIGHTS];
     uniform float shininess;
     //${this.texture ? this.textureObject.uniformTextureDeclaration() : ""}
-    ${this.texture ? "uniform sampler2D sampler" : ""}
+    ${this.texture ? "uniform sampler2D sampler;" : ""}
 
     varying vec3 fL[MAX_LIGHTS];
     varying vec3 fN;

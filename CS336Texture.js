@@ -1,6 +1,3 @@
-import "./util/cs336util.js";
-
-
 class CS336Texture {
     images = null;
     textureHandle = null;
@@ -10,12 +7,12 @@ class CS336Texture {
         this.type = type;
         if (this.type === "2D"){
             this.texture_type = "sampler2D";
-            this.texture_loader = texture2D;
+            this.texture_loader = "texture2D";
             this.imagePaths = "";
         }
         else {
             this.texture_type = "samplerCube";
-            this.texture_loader = textureCube;
+            this.texture_loader = "textureCube";
             this.imagePaths = [];
         }
     }

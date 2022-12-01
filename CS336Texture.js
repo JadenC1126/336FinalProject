@@ -1,3 +1,6 @@
+import "./util/cs336util.js";
+
+
 class CS336Texture {
     images = null;
     textureHandle = null;

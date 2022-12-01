@@ -1,5 +1,6 @@
 import "./util/cs336util.js";
 import "./three.js";
+import "./CS336Texture.js";
 
 /**
  * Encapsulation of scale, rotation, and position of a 3D object.
@@ -189,8 +190,10 @@ import "./three.js";
   *  The number of lights in the scene 
   */
  CS336Object.prototype.renderSelf = async function(gl, worldMatrix, lightCount) {
-  if (this.texture && this.modelTexture === null) this.modelTexture = await loadImagePromise(this.texture);
-
+  // if (this.texture && this.modelTexture === null) this.modelTexture = await loadImagePromise(this.texture);
+  if (this.texture && this.modelTexture == null){
+    this.textureObject.loadImage();
+  }
   const { lastLightCount } = this.shaderAttributes;
   if (lastLightCount === null || lastLightCount !== lightCount) {
     this.shaderAttributes = {
@@ -232,6 +235,10 @@ import "./three.js";
   // set view and projection matrices
 
   // set texture color attribs
+  if (this.texture && this.modelTexture == null){
+    this.textureObject.createAndLoad();
+    this.modelTexture = this.textureObject.textureHandle;
+  }
 
   // set light positions
 

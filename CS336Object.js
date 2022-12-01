@@ -236,13 +236,13 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
   const projection = camera.getProjection();
   const view = camera.getView();
   let loc = gl.getUniformLocation(shaderProgram, "model");
-  gl.uniformMatrix4fv(loc, false, this.getMatrix().elements);
+  gl.uniformMatrix4fv(loc, false, worldMatrix.elements);
   loc = gl.getUniformLocation(shaderProgram, "view");
   gl.uniformMatrix4fv(loc, false, view.elements);
   loc = gl.getUniformLocation(shaderProgram, "projection");
   gl.uniformMatrix4fv(loc, false, projection.elements);
   loc = gl.getUniformLocation(shaderProgram, "normalMatrix");
-  gl.uniformMatrix3fv(loc, false, makeNormalMatrixElements(this.getMatrix(), view));
+  gl.uniformMatrix3fv(loc, false, makeNormalMatrixElements(worldMatrix, view));
 
   lights.forEach((light, i) => {
     loc = gl.getUniformLocation(shaderProgram, `lightPosition[${i}]`);

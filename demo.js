@@ -20,7 +20,9 @@ function main() {
     var CSobject = new CS336Object({
       drawObject: true,
       light: false,
+      texture: false,
       model: modelObj,
+      textureObj: textureObject
     });
     CSobject.loadModelBuffers();
 

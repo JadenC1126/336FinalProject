@@ -7,7 +7,7 @@
  * has a list of child objects and a hook, drawFunction, for rendering the
  * object and then recursively rendering all the child objects.
  */
-var CS336Object = function({ drawObject, light, texture, model } = { drawObject: false, light: false, texture: null, model: null }) // default values
+var CS336Object = function({ drawObject, light, texture, model, textureObj} = { drawObject: false, light: false, texture: false, model: null , textureObj: new CS336Texture("2D")}) // default values
  {
    // children of this object
    this.children = [];
@@ -22,7 +22,7 @@ var CS336Object = function({ drawObject, light, texture, model } = { drawObject:
    this.texture = texture;
 
    // texture object
-   this.textureObject = new CS336Texture("2D");
+   this.textureObject = textureObj;
 
    // Model texture
    this.modelTexture = null;
@@ -68,7 +68,7 @@ var CS336Object = function({ drawObject, light, texture, model } = { drawObject:
   //  this.modelBuffers = loadModelBuffers();
  };
 
- CS336Object.prototype.loadModelBuffers = () => {
+ CS336Object.prototype.loadModelBuffers = function() {
     if (!this.modelAttributes) {
       return;
     }
@@ -85,12 +85,6 @@ var CS336Object = function({ drawObject, light, texture, model } = { drawObject:
     const vertexNormalBuffer = createAndLoadBuffer(vertexNormals);
     const texCoordBuffer = createAndLoadBuffer(texCoords);
 
-    // return {
-    //   vertexBuffer,
-    //   faceNormalBuffer,
-    //   vertexNormalBuffer,
-    //   texCoordBuffer,
-    // }
     this.modelBuffers = {
       vertexBuffer,
       faceNormalBuffer,
@@ -249,7 +243,24 @@ var CS336Object = function({ drawObject, light, texture, model } = { drawObject:
   gl.uniformMatrix4fv(loc, false, projection.elements);
   loc = gl.getUniformLocation(shaderProgram, "normalMatrix");
   gl.uniformMatrix3fv(loc, false, makeNormalMatrixElements(this.getMatrix(), view));
-  
+
+  lights.forEach((light, i) => {
+    loc = gl.getUniformLocation(shaderProgram, `lightPosition[${i}]`);
+    gl.uniform4f(loc, light.x, light.y, light.z, 1.0);
+  })
+
+  lights.forEach((light, i) => {
+    loc = gl.getUniformLocation(shaderProgram, `lightProperties[${i}]`);
+    gl.uniformMatrix4fv(loc, false, light.lightProperties())
+  })
+
+  gl.drawArrays(gl.TRIANGLES, 0, this.modelAttributes.numVertices);
+
+  gl.disableVertexAttribArray(positionIndex);
+  gl.disableVertexAttribArray(normalIndex);
+  gl.disableVertexAttribArray(texCoordIndex);
+
+  gl.useProgram(null);
  };
 /**
  * Create a vertex shader based on the number of lights in the scene.

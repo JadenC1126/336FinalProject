@@ -1,5 +1,3 @@
-import "./Camera.js";
-
 class CS336Scene {
     camera = null;
     objects = [];

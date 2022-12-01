@@ -1,6 +1,4 @@
-import "./util/cs336util.js";
-import "./three.js";
-import "./CS336Texture.js";
+
 
 /**
  * Encapsulation of scale, rotation, and position of a 3D object.
@@ -9,7 +7,7 @@ import "./CS336Texture.js";
  * has a list of child objects and a hook, drawFunction, for rendering the
  * object and then recursively rendering all the child objects.
  */
- var CS336Object = function({ drawObject, light, texture, model } = { drawObject: false, light: false, texture: null, model: null }) // default values
+var CS336Object = function({ drawObject, light, texture, model } = { drawObject: false, light: false, texture: null, model: null }) // default values
  {
    // children of this object
    this.children = [];
@@ -33,7 +31,7 @@ import "./CS336Texture.js";
    this.position = new THREE.Vector3();
 
    // function to draw itself 
-   this.drawSelf = drawCube();
+  //  this.drawSelf = drawCube();
  
    // Rotation matrix.
    // The three columns of this matrix are the x, y, and z axes
@@ -67,7 +65,7 @@ import "./CS336Texture.js";
     }
     */
    this.modelAttributes = model ? { ...model } : null;
-   this.modelBuffers = loadModelBuffers();
+  //  this.modelBuffers = loadModelBuffers();
  };
 
  CS336Object.prototype.loadModelBuffers = () => {
@@ -87,7 +85,13 @@ import "./CS336Texture.js";
     const vertexNormalBuffer = createAndLoadBuffer(vertexNormals);
     const texCoordBuffer = createAndLoadBuffer(texCoords);
 
-    return {
+    // return {
+    //   vertexBuffer,
+    //   faceNormalBuffer,
+    //   vertexNormalBuffer,
+    //   texCoordBuffer,
+    // }
+    this.modelBuffers = {
       vertexBuffer,
       faceNormalBuffer,
       vertexNormalBuffer,
@@ -170,7 +174,7 @@ import "./CS336Texture.js";
    var current = new THREE.Matrix4().copy(worldMatrix).multiply(this.getMatrix());
  
    // render if we want to draw this object
-   if (this.drawObject) await this.renderSelf(current, lightCount);
+   if (this.drawObject) await this.renderSelf(gl, current, lightCount);
  
    // recurse through children, who will use the current matrix
    // as their "world"

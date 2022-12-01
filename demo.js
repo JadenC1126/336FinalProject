@@ -17,7 +17,7 @@ function main() {
     // using basic cube vertices 
     var modelObj = makeCube();
 
-    var CSobject = new CS336Object(true, false, textureObject, modelObj.vertices);
+    var CSobject = new CS336Object(true, false, true, modelObj.vertices, textureObject);
     CSobject.loadModelBuffers();
 
     CSobject.render(gl, new THREE.Matrix4(modelObj.vertices), 1);

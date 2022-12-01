@@ -7,7 +7,7 @@
  * has a list of child objects and a hook, drawFunction, for rendering the
  * object and then recursively rendering all the child objects.
  */
-var CS336Object = function({ drawObject, light, texture, model } = { drawObject: false, light: false, texture: null, model: null }) // default values
+var CS336Object = function({ drawObject, light, texture, model, textureObj} = { drawObject: false, light: false, texture: false, model: null , textureObj: new CS336Texture("2D")}) // default values
  {
    // children of this object
    this.children = [];
@@ -22,7 +22,7 @@ var CS336Object = function({ drawObject, light, texture, model } = { drawObject:
    this.texture = texture;
 
    // texture object
-   this.textureObject = new CS336Texture("2D");
+   this.textureObject = textureObj;
 
    // Model texture
    this.modelTexture = null;

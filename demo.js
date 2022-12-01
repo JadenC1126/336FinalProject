@@ -22,13 +22,19 @@ function main() {
     modelObj = makeCube();
 
     // instantiate the object
-    CSobject = new CS336Object(true, false, true, modelObj.vertices, textureObject);
-
+    CSobject = new CS336Object({
+      drawObject: true,
+      light: false,
+      texture: false,
+      model: modelObj,
+      textureObj: textureObject
+    });
     // load the data in the object to the buffers
     CSobject.loadModelBuffers();
 
     // render the object
-    CSobject.render(gl, new THREE.Matrix4(modelObj.vertices), 1);
+    CSobject.render(gl, new THREE.Matrix4(), [], new Camera());
+
 
   // specify a fill color for clearing the framebuffer
   gl.clearColor(0.9, 0.9, 0.9, 1.0);
@@ -49,6 +55,6 @@ function main() {
 
 function draw()
 {
-    CSobject.render(gl, new THREE.Matrix4(modelObj.vertices), 1);
+    CSobject.render(gl, new THREE.Matrix4(), [], new Camera());
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BIT);
 }

@@ -68,7 +68,7 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
   //  this.modelBuffers = loadModelBuffers();
  };
 
- CS336Object.prototype.loadModelBuffers = () => {
+ CS336Object.prototype.loadModelBuffers = function() {
     if (!this.modelAttributes) {
       return;
     }
@@ -85,12 +85,6 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
     const vertexNormalBuffer = createAndLoadBuffer(vertexNormals);
     const texCoordBuffer = createAndLoadBuffer(texCoords);
 
-    // return {
-    //   vertexBuffer,
-    //   faceNormalBuffer,
-    //   vertexNormalBuffer,
-    //   texCoordBuffer,
-    // }
     this.modelBuffers = {
       vertexBuffer,
       faceNormalBuffer,
@@ -237,10 +231,6 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
   gl.bindBuffer(gl.ARRAY_BUFFER, this.modelBuffers.texCoordBuffer);
   gl.vertexAttribPointer(texCoordIndex, 2, gl.FLOAT, false, 0, 0);
 
-
-  // set view and projection matrices
-
-  // set texture color attribs
   if (this.texture && this.modelTexture == null){
     this.textureObject.createAndLoad();
     this.modelTexture = this.textureObject.textureHandle;
@@ -249,19 +239,29 @@ var CS336Object = function({ drawObject, light, texture, model, textureObj} = { 
   const projection = camera.getProjection();
   const view = camera.getView();
   let loc = gl.getUniformLocation(shaderProgram, "model");
-  gl.uniformMatrix4fv(loc, false, this.getMatrix().elements);
+  gl.uniformMatrix4fv(loc, false, worldMatrix.elements);
   loc = gl.getUniformLocation(shaderProgram, "view");
   gl.uniformMatrix4fv(loc, false, view.elements);
   loc = gl.getUniformLocation(shaderProgram, "projection");
   gl.uniformMatrix4fv(loc, false, projection.elements);
   loc = gl.getUniformLocation(shaderProgram, "normalMatrix");
-  gl.uniformMatrix3fv(loc, false, makeNormalMatrixElements(this.getMatrix(), view));
+  gl.uniformMatrix3fv(loc, false, makeNormalMatrixElements(worldMatrix, view));
 
-  // set light positions
+  lights.forEach((light, i) => {
+    loc = gl.getUniformLocation(shaderProgram, `lightPosition[${i}]`);
+    gl.uniform4f(loc, light.x, light.y, light.z, 1.0);
+  })
 
-  // set model matrix
+  lights.forEach((light, i) => {
+    loc = gl.getUniformLocation(shaderProgram, `lightProperties[${i}]`);
+    gl.uniformMatrix4fv(loc, false, light.lightProperties())
+  })
 
-  // set normal matrix
+  gl.drawArrays(gl.TRIANGLES, 0, this.modelAttributes.numVertices);
+
+  gl.disableVertexAttribArray(positionIndex);
+  gl.disableVertexAttribArray(normalIndex);
+  gl.disableVertexAttribArray(texCoordIndex);
 
   // draw
   console.log("++++++++++++++++");

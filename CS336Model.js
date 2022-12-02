@@ -28,19 +28,24 @@ CS336Model.prototype.loadModelBuffers = function() {
         normals,
         vertexNormals,
         texCoords,
-        colors,
     } = this.modelProperties;
+    const colors = this.materialProperties.color;
 
     const vertexBuffer = createAndLoadBuffer(vertices);
     const normalBuffer = createAndLoadBuffer(normals);
     const vertexNormalBuffer = createAndLoadBuffer(vertexNormals);
     let texCoordBuffer = null;
     let colorBuffer = null;
+
     if( this.materialProperties.texture_2d || this.materialProperties.texture_cube ) {
         texCoordBuffer = createAndLoadBuffer(texCoords);
     }
     else if (this.materialProperties.solid){
+        console.log("**********************-");
         colorBuffer = createAndLoadBuffer(colors);
+        console.log(colors);
+        console.log("--------");
+        console.log(colorBuffer);
     }
 
     this.modelProperties.buffers = {
@@ -108,7 +113,10 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     gl.enableVertexAttribArray(positionIndex);
     gl.enableVertexAttribArray(normalIndex);
     if( texCoordIndex ) gl.enableVertexAttribArray(texCoordIndex);
-    if ( colorIndex ) gl.enableVertexAttribArray(colorIndex);
+    if ( colorIndex > -1) {
+        gl.enableVertexAttribArray(colorIndex);
+        console.log("GOTT here");
+    }
 
     const {
         vertexBuffer,
@@ -124,15 +132,17 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     // gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
     gl.vertexAttribPointer(normalIndex, 3, gl.FLOAT, false, 0, 0);
     if( texCoordIndex ) {
+        console.log("ooooooooooo");
         gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
         gl.vertexAttribPointer(texCoordIndex, 2, gl.FLOAT, false, 0, 0);
     }
     else if ( colorIndex ){
+        console.log("ooooooooooo");
         gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
         gl.vertexAttribPointer(colorIndex, 4, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        console.log(colorBuffer);
     }
-
+    console.log(colorBuffer);
     const projection = camera.getProjection();
     const view = camera.getView();
     let loc = gl.getUniformLocation(shaderProgram, "model");
@@ -171,8 +181,8 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     //     }
     //     // shininess?
     // }
-    if( this.materialProperties ) {
-        const { surfaceAttributes } = this.materialProperties;
+    if( this.materialProperties.adjust_surface ) {
+        const { surfaceAttributes } = this.materialProperties.surfaceAttributes;
         if( surfaceAttributes ) {
             loc = gl.getUniformLocation(shaderProgram, "materialProperties");
             gl.uniformMatrix3fv(loc, false, surfaceAttributes);
@@ -244,7 +254,7 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
 
         ${lightCount > 0 ? 'uniform mat3 lightProperties[MAX_LIGHTS];' : ''}
         // Force this exist when lights are used?
-        ${this.materialProperties && this.materialProperties.surfaceAttributes ? 'uniform mat3 materialProperties;' : ''}
+        ${this.materialProperties && this.materialProperties.adjust_surface ? 'uniform mat3 materialProperties;' : ''}
         ${this.materialProperties && this.materialProperties.textureAttributes ? 'uniform sampler2D u_Sampler;' : ''}
         ${this.materialProperties.solid ? 'varying vec4 color;': ''}
 
@@ -275,8 +285,9 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
         void main() {
             vec3 N = normalize(fN);
             vec3 V = normalize(fV);
-            ${this.materialProperties.solid ? 
-            `gl_FragColor = color;`: 
+            ${this.materialProperties.solid ? `
+            gl_FragColor = color;
+            `: 
             `
                 vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
                 ${lightCount > 0 ?

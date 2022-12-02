@@ -29,18 +29,24 @@ async function main() {
     //   model: getModelData(modelObj), // expand the model data
     // });
 
-    object = new CS336Model({
-      draw: true,
-      modelProperties: getModelData(modelObj),
-      materialProperties: {
-        surfaceAttributes: new Float32Array([
-          0.1, 0.1, 0.1,
-          0.7, 0.7, 0.7,
-          0.7, 0.7, 0.7,
-        ])
-      }
-    });
+    // object = new CS336Model({
+    //   draw: true,
+    //   modelProperties: getModelData(modelObj),
+    //   materialProperties: {
+    //     surfaceAttributes: new Float32Array([
+    //       0.1, 0.1, 0.1,
+    //       0.7, 0.7, 0.7,
+    //       0.7, 0.7, 0.7,
+    //     ])
+    //   }
+    // });
     
+    object = new CS336Model({
+        draw: true,
+        modelProperties: getModelData(modelObj),
+        materialProperties: new CS336Materials("solid"),
+        }
+      );
     // load the data in the object to the buffers
     object.loadModelBuffers();
     console.log(object);

@@ -150,6 +150,13 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     //     }
     //     // shininess?
     // }
+    if( this.materialProperties ) {
+        const { surfaceAttributes } = this.materialProperties;
+        if( surfaceAttributes ) {
+            loc = gl.getUniformLocation(shaderProgram, "materialProperties");
+            gl.uniformMatrix3fv(loc, false, surfaceAttributes);
+        }
+    }
 
     gl.drawArrays(gl.TRIANGLES, 0, this.modelProperties.numVertices);
 

@@ -71,14 +71,14 @@ CS336Model.prototype.render = async function(gl, worldMatrix, lights, camera) {
 CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera) {
     // Pull or load texture if applicable
 
-    const { lastLightCount } = this.shaderAttributes;
-    if( lastLightCount !== lights.length ) {
+    let { shaderProgram, lastLightCount } = this.shaderAttributes;
+    if( shaderProgram === null || lastLightCount !== lights.length ) {
         this.shaderAttributes = {
             lastLightCount: lights.length,
             shaderProgram: createShaderProgram(gl, this.createVertexShader(lights.length), this.createFragmentShader(lights.length)),
         }
     }
-    const { shaderProgram } = this.shaderAttributes;
+    shaderProgram = this.shaderAttributes.shaderProgram;
 
     gl.useProgram(shaderProgram);
 
@@ -196,6 +196,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
 
 CS336Model.prototype.createVertexShader = function(lightCount) {
     return `
+        precision mediump float;
         ${lightCount > 0 ? `#define MAX_LIGHTS ${lightCount}` : ''}
         uniform mat4 model;
         uniform mat4 view;

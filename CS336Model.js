@@ -24,12 +24,17 @@ CS336Model.prototype.loadModelBuffers = function() {
     if( !this.modelProperties ) return;
 
     const {
+        numVertices,
         vertices,
         normals,
         vertexNormals,
         texCoords,
     } = this.modelProperties;
-    const colors = this.materialProperties.color;
+    let color = this.materialProperties.color;
+    let colors = [];
+    for( let i = 0; i < numVertices; i++ ) {
+        colors.push(color[0], color[1], color[2], color[3]);
+    }
 
     const vertexBuffer = createAndLoadBuffer(vertices);
     const normalBuffer = createAndLoadBuffer(normals);
@@ -40,12 +45,8 @@ CS336Model.prototype.loadModelBuffers = function() {
     if( this.materialProperties.texture_2d || this.materialProperties.texture_cube ) {
         texCoordBuffer = createAndLoadBuffer(texCoords);
     }
-    else if (this.materialProperties.solid){
-        console.log("**********************-");
-        colorBuffer = createAndLoadBuffer(colors);
-        console.log(colors);
-        console.log("--------");
-        console.log(colorBuffer);
+    if (this.materialProperties.solid){
+        colorBuffer = createAndLoadBuffer(new Float32Array(colors));
     }
 
     this.modelProperties.buffers = {
@@ -59,8 +60,6 @@ CS336Model.prototype.loadModelBuffers = function() {
 
 CS336Model.prototype.render = async function(gl, worldMatrix, lights, camera) {
     const world = new THREE.Matrix4().copy(worldMatrix).multiply(this.getMatrix());
-
-    console.log(lights)
 
     if( this.draw ) await this.renderSelf(gl, world, lights, camera);
     
@@ -102,7 +101,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
             return;
         }
     }
-    else if (this.materialProperties.solid){
+    if (this.materialProperties.solid){
         colorIndex = gl.getAttribLocation(shaderProgram, "a_Color");
         if( colorIndex < 0 ) {
             console.log("Failed to get the storage location of a_Color");
@@ -112,11 +111,8 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
 
     gl.enableVertexAttribArray(positionIndex);
     gl.enableVertexAttribArray(normalIndex);
-    if( texCoordIndex ) gl.enableVertexAttribArray(texCoordIndex);
-    if ( colorIndex > -1) {
-        gl.enableVertexAttribArray(colorIndex);
-        console.log("GOTT here");
-    }
+    if( texCoordIndex >= 0 ) gl.enableVertexAttribArray(texCoordIndex);
+    if ( colorIndex >= 0 ) gl.enableVertexAttribArray(colorIndex);
 
     const {
         vertexBuffer,
@@ -131,18 +127,15 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
     // gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
     gl.vertexAttribPointer(normalIndex, 3, gl.FLOAT, false, 0, 0);
-    if( texCoordIndex ) {
-        console.log("ooooooooooo");
+    if( texCoordIndex >= 0 ) {
         gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
         gl.vertexAttribPointer(texCoordIndex, 2, gl.FLOAT, false, 0, 0);
     }
-    else if ( colorIndex ){
-        console.log("ooooooooooo");
+    if ( colorIndex >= 0 ){
         gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
         gl.vertexAttribPointer(colorIndex, 4, gl.FLOAT, false, 0, 0);
-        console.log(colorBuffer);
     }
-    console.log(colorBuffer);
+
     const projection = camera.getProjection();
     const view = camera.getView();
     let loc = gl.getUniformLocation(shaderProgram, "model");
@@ -182,7 +175,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     //     // shininess?
     // }
     if( this.materialProperties.adjust_surface ) {
-        const { surfaceAttributes } = this.materialProperties.surfaceAttributes;
+        const surfaceAttributes = this.materialProperties.surfaceAttributes;
         if( surfaceAttributes ) {
             loc = gl.getUniformLocation(shaderProgram, "materialProperties");
             gl.uniformMatrix3fv(loc, false, surfaceAttributes);
@@ -193,8 +186,8 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
 
     gl.disableVertexAttribArray(positionIndex);
     gl.disableVertexAttribArray(normalIndex);
-    if( texCoordIndex ) gl.disableVertexAttribArray(texCoordIndex);
-    if ( colorIndex ) gl.disableVertexAttribArray(colorIndex);
+    if( texCoordIndex >= 0 ) gl.disableVertexAttribArray(texCoordIndex);
+    if ( colorIndex >= 0 ) gl.disableVertexAttribArray(colorIndex);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 

@@ -268,21 +268,16 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
         void main() {
             vec3 N = normalize(fN);
             vec3 V = normalize(fV);
-            ${this.materialProperties.solid ? `
-            gl_FragColor = color;
-            `: 
-            `
-                vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
-                ${lightCount > 0 ?
-                    `
-                        for( int i = 0; i < MAX_LIGHTS; i++ ) {
-                            color += getLightContribution(fL[i], lightProperties[i], N, V);
-                        }
-                    ` : '// some color based on texture without light'
-                }
-                gl_FragColor = color ${lightCount > 0 ? '/ float(MAX_LIGHTS)' : ''};
-                gl_FragColor.a = 1.0;`
+            vec4 tmpColor = ${this.materialProperties.solid ? 'color' : 'vec4(0.0, 0.0, 0.0, 1.0)'};
+            ${lightCount > 0 ?
+                `
+                    for( int i = 0; i < MAX_LIGHTS; i++ ) {
+                        tmpColor += getLightContribution(fL[i], lightProperties[i], N, V);
+                    }
+                ` : '// some color based on texture without light'
             }
+            gl_FragColor = tmpColor ${lightCount > 0 ? '/ float(MAX_LIGHTS)' : ''};
+            gl_FragColor.a = 1.0;
         }
     `;
 }

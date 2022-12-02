@@ -1,4 +1,10 @@
-var CS336Light = function({x, y, z, lightProperties} = {x: 0.0, y: 0.0, z: 2.0, lightProperties: CS336Light.DEFAULT_LIGHT_PROPERTIES}) {
+const DEFAULT_LIGHT_PROPERTIES = new Float32Array([
+    0.2, 0.2, 0.2, // ambient
+    0.7, 0.7, 0.7, // diffuse
+    0.7, 0.7, 0.7 // specular
+])
+
+var CS336Light = function({x, y, z, lightProperties} = {x: 0.0, y: 0.0, z: 2.0, lightProperties: DEFAULT_LIGHT_PROPERTIES}) {
     CS336Object.call(this);
 
     this.setPosition(x, y, z);
@@ -7,12 +13,6 @@ var CS336Light = function({x, y, z, lightProperties} = {x: 0.0, y: 0.0, z: 2.0, 
 }
 
 CS336Light.prototype = Object.create(CS336Object.prototype);
-
-CS336Light.prototype.DEFAULT_LIGHT_PROPERTIES = new Float32Array([
-    0.2, 0.2, 0.2,
-    0.7, 0.7, 0.7,
-    0.7, 0.7, 0.7,
-]);
 
 CS336Light.prototype.getLightProperties = function() {
     return this.lightProperties;

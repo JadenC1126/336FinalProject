@@ -55,6 +55,8 @@ CS336Model.prototype.loadModelBuffers = function() {
 CS336Model.prototype.render = async function(gl, worldMatrix, lights, camera) {
     const world = new THREE.Matrix4().copy(worldMatrix).multiply(this.getMatrix());
 
+    console.log(lights)
+
     if( this.draw ) await this.renderSelf(gl, world, lights, camera);
     
     for( let i = 0; i < this.children.length; i++ ) {
@@ -169,6 +171,13 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     //     }
     //     // shininess?
     // }
+    if( this.materialProperties ) {
+        const { surfaceAttributes } = this.materialProperties;
+        if( surfaceAttributes ) {
+            loc = gl.getUniformLocation(shaderProgram, "materialProperties");
+            gl.uniformMatrix3fv(loc, false, surfaceAttributes);
+        }
+    }
 
     gl.drawArrays(gl.TRIANGLES, 0, this.modelProperties.numVertices);
 

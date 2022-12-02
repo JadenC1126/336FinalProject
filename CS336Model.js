@@ -29,6 +29,7 @@ CS336Model.prototype.loadModelBuffers = function() {
         vertexNormals,
         texCoords,
     } = this.modelProperties;
+
     const colors = this.materialProperties.color;
 
     const vertexBuffer = createAndLoadBuffer(vertices);
@@ -41,11 +42,7 @@ CS336Model.prototype.loadModelBuffers = function() {
         texCoordBuffer = createAndLoadBuffer(texCoords);
     }
     else if (this.materialProperties.solid){
-        console.log("**********************-");
         colorBuffer = createAndLoadBuffer(colors);
-        console.log(colors);
-        console.log("--------");
-        console.log(colorBuffer);
     }
 
     this.modelProperties.buffers = {
@@ -102,20 +99,19 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
             return;
         }
     }
-    else if (this.materialProperties.solid){
-        colorIndex = gl.getAttribLocation(shaderProgram, "a_Color");
-        if( colorIndex < 0 ) {
-            console.log("Failed to get the storage location of a_Color");
-            return;
-        }
-    }
+    // else if (this.materialProperties.solid){
+    //     colorIndex = gl.getAttribLocation(shaderProgram, "a_Color");
+    //     if( colorIndex < 0 ) {
+    //         console.log("Failed to get the storage location of a_Color");
+    //         return;
+    //     }
+    // }
 
     gl.enableVertexAttribArray(positionIndex);
     gl.enableVertexAttribArray(normalIndex);
     if( texCoordIndex ) gl.enableVertexAttribArray(texCoordIndex);
     if ( colorIndex > -1) {
         gl.enableVertexAttribArray(colorIndex);
-        console.log("GOTT here");
     }
 
     const {
@@ -132,17 +128,13 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     // gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
     gl.vertexAttribPointer(normalIndex, 3, gl.FLOAT, false, 0, 0);
     if( texCoordIndex ) {
-        console.log("ooooooooooo");
         gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
         gl.vertexAttribPointer(texCoordIndex, 2, gl.FLOAT, false, 0, 0);
     }
-    else if ( colorIndex ){
-        console.log("ooooooooooo");
+    else if ( colorIndex > -1){
         gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
         gl.vertexAttribPointer(colorIndex, 4, gl.FLOAT, false, 0, 0);
-        console.log(colorBuffer);
     }
-    console.log(colorBuffer);
     const projection = camera.getProjection();
     const view = camera.getView();
     let loc = gl.getUniformLocation(shaderProgram, "model");
@@ -194,7 +186,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     gl.disableVertexAttribArray(positionIndex);
     gl.disableVertexAttribArray(normalIndex);
     if( texCoordIndex ) gl.disableVertexAttribArray(texCoordIndex);
-    if ( colorIndex ) gl.disableVertexAttribArray(colorIndex);
+    if ( colorIndex > -1) gl.disableVertexAttribArray(colorIndex);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
@@ -209,8 +201,8 @@ CS336Model.prototype.createVertexShader = function(lightCount) {
         uniform mat4 view;
         uniform mat4 projection;
         uniform mat3 normalMatrix;
-        ${this.materialProperties.solid ? 'attribute vec4 a_Color;': ''}
-        ${this.materialProperties.solid ? 'varying vec4 color;': ''}
+        // ${this.materialProperties.solid ? 'attribute vec4 a_Color;': ''}
+        // ${this.materialProperties.solid ? 'varying vec4 color;': ''}
 
         ${lightCount > 0 ? 'uniform vec4 lightPosition[MAX_LIGHTS];' : ''}
 
@@ -228,15 +220,20 @@ CS336Model.prototype.createVertexShader = function(lightCount) {
 
             fN = normalMatrix * a_Normal;
             fV = normalize(-(posEye).xyz);
-            ${this.materialProperties.solid ? 'color = a_Color;': ''}
-
-            ${lightCount > 0 ?
-                `
-                    for( int i = 0; i < MAX_LIGHTS; i++ ) {
-                        vec4 lightEye = view * lightPosition[i];
-                        fL[i] = (lightEye - posEye).xyz;
-                    }
-                ` : '' 
+            ${this.materialProperties.solid ? `
+            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+            `: 
+            `
+                vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
+                ${lightCount > 0 ?
+                    `
+                        for( int i = 0; i < MAX_LIGHTS; i++ ) {
+                            color += getLightContribution(fL[i], lightProperties[i], N, V);
+                        }
+                    ` : '// some color based on texture without light'
+                }
+                gl_FragColor = color ${lightCount > 0 ? '/ float(MAX_LIGHTS)' : ''};
+                gl_FragColor.a = 1.0;`
             }
 
             // TODO: texture coordinates
@@ -256,7 +253,7 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
         // Force this exist when lights are used?
         ${this.materialProperties && this.materialProperties.adjust_surface ? 'uniform mat3 materialProperties;' : ''}
         ${this.materialProperties && this.materialProperties.textureAttributes ? 'uniform sampler2D u_Sampler;' : ''}
-        ${this.materialProperties.solid ? 'varying vec4 color;': ''}
+        // ${this.materialProperties.solid ? 'varying vec4 color;': ''}
 
         ${lightCount > 0 ? 'varying vec3 fL[MAX_LIGHTS];' : ''}
         varying vec3 fN;
@@ -285,22 +282,17 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
         void main() {
             vec3 N = normalize(fN);
             vec3 V = normalize(fV);
-            ${this.materialProperties.solid ? `
-            gl_FragColor = color;
-            `: 
-            `
-                vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
-                ${lightCount > 0 ?
-                    `
-                        for( int i = 0; i < MAX_LIGHTS; i++ ) {
-                            color += getLightContribution(fL[i], lightProperties[i], N, V);
-                        }
-                    ` : '// some color based on texture without light'
-                }
-                gl_FragColor = color ${lightCount > 0 ? '/ float(MAX_LIGHTS)' : ''};
-                gl_FragColor.a = 1.0;`
-            }
 
+            vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
+            ${lightCount > 0 ?
+                `
+                    for( int i = 0; i < MAX_LIGHTS; i++ ) {
+                        color += getLightContribution(fL[i], lightProperties[i], N, V);
+                    }
+                ` : '// some color based on texture without light'
+            }
+            gl_FragColor = color ${lightCount > 0 ? '/ float(MAX_LIGHTS)' : ''};
+            gl_FragColor.a = 1.0;
 
         }
     `;

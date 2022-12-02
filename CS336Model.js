@@ -30,6 +30,7 @@ CS336Model.prototype.loadModelBuffers = function() {
         vertexNormals,
         texCoords,
     } = this.modelProperties;
+
     let color = this.materialProperties.color;
     let colors = [];
     for( let i = 0; i < numVertices; i++ ) {
@@ -156,24 +157,6 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         gl.uniformMatrix3fv(loc, false, light.getLightProperties());
     })
 
-    // TODO: Replace as needed, copilot is cracked
-    // if( this.materialProperties ) {
-    //     const { textureAttributes } = this.materialProperties;
-    //     if( textureAttributes ) {
-    //         const { texture, textureIndex } = textureAttributes;
-    //         gl.activeTexture(gl.TEXTURE0 + textureIndex);
-    //         gl.bindTexture(gl.TEXTURE_2D, texture);
-    //         loc = gl.getUniformLocation(shaderProgram, "u_Sampler");
-    //         gl.uniform1i(loc, textureIndex);
-    //     }
-
-    //     const { surfaceAttributes } = this.materialProperties;
-    //     if( materialProperties ) {
-    //         loc = gl.getUniformLocation(shaderProgram, "materialProperties");
-    //         gl.uniformMatrix3fv(loc, false, surfaceAttributes);
-    //     }
-    //     // shininess?
-    // }
     if( this.materialProperties.adjust_surface ) {
         const surfaceAttributes = this.materialProperties.surfaceAttributes;
         if( surfaceAttributes ) {

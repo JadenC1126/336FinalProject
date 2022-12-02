@@ -6,7 +6,7 @@ class CS336Materials{
     solid = false;
 
     // default solid color is red
-    color = new Float32Array([1.0, 0.0, 0.0, 1.0]);
+    color = [1.0, 0.0, 0.0, 1.0];
 
     // for textures 
     texture_2d = false;

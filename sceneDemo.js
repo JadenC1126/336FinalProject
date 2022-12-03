@@ -13,11 +13,6 @@ async function main() {
         materialProperties: material,
     });
     sphere.materialProperties.setColor([0.75, 0.75, 0.75, 1.0]);
-    sphere.materialProperties.setSurfaceAttributes(new Float32Array([
-        0.1, 0.1, 0.1,
-        0.5, 0.5, 0.5,
-        0.5, 0.5, 0.5,
-    ]));
     sphere.loadModelBuffers();
     const sphere2 = new CS336Model({
         draw: true,
@@ -25,11 +20,6 @@ async function main() {
         materialProperties: material,
     });
     sphere2.materialProperties.setColor([0.25, 0.25, 0.25, 1.0]);
-    sphere2.materialProperties.setSurfaceAttributes(new Float32Array([
-        0.1, 0.1, 0.1,
-        0.25, 0.25, 0.25,
-        0.25, 0.25, 0.25,
-    ]));
     sphere2.loadModelBuffers();
     const sphere3 = new CS336Model({
         draw: true,
@@ -37,11 +27,6 @@ async function main() {
         materialProperties: material,
     });
     sphere3.materialProperties.setColor([0.5, 0.5, 0.5, 1.0]);
-    sphere3.materialProperties.setSurfaceAttributes(new Float32Array([
-        0.1, 0.1, 0.1,
-        0.25, 0.25, 0.25,
-        0.25, 0.25, 0.25,
-    ]));
     sphere3.loadModelBuffers();
 
     sphere.setPosition(1.5, 0, -1);

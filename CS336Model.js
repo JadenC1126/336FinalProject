@@ -30,6 +30,7 @@ CS336Model.prototype.loadModelBuffers = function() {
         vertexNormals,
         texCoords,
     } = this.modelProperties;
+
     let color = this.materialProperties.color;
     let colors = [];
     for( let i = 0; i < numVertices; i++ ) {
@@ -83,7 +84,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         }
     }
     const { shaderProgram } = this.shaderAttributes;
-    let textureHandle = null;
+
     gl.useProgram(shaderProgram);
 
     const positionIndex = gl.getAttribLocation(shaderProgram, "a_Position");
@@ -133,6 +134,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     // gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
     gl.vertexAttribPointer(normalIndex, 3, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    let textureHandle = null;
     if( texCoordIndex >= 0 ) {
         gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
         gl.vertexAttribPointer(texCoordIndex, 2, gl.FLOAT, false, 0, 0);
@@ -167,24 +169,6 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         gl.uniformMatrix3fv(loc, false, light.getLightProperties());
     })
 
-    // TODO: Replace as needed, copilot is cracked
-    // if( this.materialProperties ) {
-    //     const { textureAttributes } = this.materialProperties;
-    //     if( textureAttributes ) {
-    //         const { texture, textureIndex } = textureAttributes;
-    //         gl.activeTexture(gl.TEXTURE0 + textureIndex);
-    //         gl.bindTexture(gl.TEXTURE_2D, texture);
-    //         loc = gl.getUniformLocation(shaderProgram, "u_Sampler");
-    //         gl.uniform1i(loc, textureIndex);
-    //     }
-
-    //     const { surfaceAttributes } = this.materialProperties;
-    //     if( materialProperties ) {
-    //         loc = gl.getUniformLocation(shaderProgram, "materialProperties");
-    //         gl.uniformMatrix3fv(loc, false, surfaceAttributes);
-    //     }
-    //     // shininess?
-    // }
     if( this.materialProperties.adjust_surface ) {
         const surfaceAttributes = this.materialProperties.surfaceAttributes;
         if( surfaceAttributes ) {
@@ -194,7 +178,6 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     }
 
     if (textureHandle){
-        console.log("((((((((((((((((");
         var textureUnit = 0;
         gl.activeTexture(gl.TEXTURE0 + textureUnit);
         gl.bindTexture(gl.TEXTURE_2D, textureHandle);
@@ -204,13 +187,13 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         // that we pass in 3 when setting the uniform for the sampler
         gl.activeTexture(gl.TEXTURE0);
       
-        let loc = gl.getUniformLocation(shaderProgram, "u_Sampler");
+        let loc2 = gl.getUniformLocation(shaderProgram, "u_Sampler");
       
         // sampler value in shader is set to index for texture unit
-        gl.uniform1i(loc, textureUnit);
+        gl.uniform1i(loc2, textureUnit);
     }
 
-
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.drawArrays(gl.TRIANGLES, 0, this.modelProperties.numVertices);
 
     gl.disableVertexAttribArray(positionIndex);
@@ -225,6 +208,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
 
 CS336Model.prototype.createVertexShader = function(lightCount) {
     return `
+        precision mediump float;
         ${lightCount > 0 ? `#define MAX_LIGHTS ${lightCount}` : ''}
         uniform mat4 model;
         uniform mat4 view;
@@ -291,7 +275,7 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
             // TODO: account for textures
             float diffuseFactor = max(dot(L, N), 0.0);
             // replace matProps[2][2] with shininess?
-            float specularFactor = pow(max(dot(R, V), 0.0), materialProperties[2][2]);
+            float specularFactor = pow(max(dot(R, V), 0.0), 5.0);
             return ambient + diffuse * diffuseFactor + specular * specularFactor;
         }
         void main() {

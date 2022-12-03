@@ -16,7 +16,7 @@ async function main() {
 
     // creat texture for object
     textureObject = new CS336Texture("2D");
-    textureObject.imagePaths = imagePath;
+    // textureObject.imagePaths = imagePath;
 
     // using basic cube vertices 
     modelObj = new THREE.SphereGeometry(1);
@@ -40,13 +40,25 @@ async function main() {
     //     ])
     //   }
     // });
-    
+
+    // Solid color 
+    // object = new CS336Model({
+    //     draw: true,
+    //     modelProperties: getModelData(modelObj),
+    //     materialProperties: new CS336Materials("solid"),
+    //     }
+    //   );
+
+    // 2D Textured object 
     object = new CS336Model({
         draw: true,
         modelProperties: getModelData(modelObj),
-        materialProperties: new CS336Materials("solid"),
+        materialProperties: new CS336Materials("2D"),
         }
       );
+    object.materialProperties.create2DTexture(imagePath);
+
+
     // load the data in the object to the buffers
     object.loadModelBuffers();
     console.log(object);

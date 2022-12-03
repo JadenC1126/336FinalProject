@@ -4,6 +4,7 @@ class CS336Texture { // THREE materials
     texture_type = null;
     texture_loader = null;
     imagePaths = null;
+    loaded = false;
 
     // solid vs not solid
     
@@ -28,27 +29,29 @@ class CS336Texture { // THREE materials
     }
 
     async loadImage(){
-        if (this.type === "2D"){
-            this.images = await loadImagePromise(this.imagePaths);
-        }
-        else {
-            this.images = [];
-            for (let i = 0; i < this.imagePaths.length; ++i)
-            {
-              this.images[i] = await loadImagePromise(this.imagePaths[i]);
+        if (!this.loaded){
+            if (this.type === "2D"){
+                this.images = await loadImagePromise(this.imagePaths);
+            }
+            else {
+                this.images = [];
+                for (let i = 0; i < this.imagePaths.length; ++i)
+                {
+                this.images[i] = await loadImagePromise(this.imagePaths[i]);
+                }
             }
         }
-        
     }
 
     async createAndLoad(){
-        if (this.type === "2D"){
-            this.textureHandler = createAndLoadTexture(this.images);
+        if (!this.loaded){
+            if (this.type === "2D"){
+                this.textureHandler = await createAndLoadTexture(this.images);
+            }
+            else {
+                this.textureHandler = await createAndLoadCubeTexture(this.images);
+            }
         }
-        else {
-            this.textureHandler = createAndLoadCubeTexture(this.images);
-        }
-        
     }
 
     get textureHandle(){

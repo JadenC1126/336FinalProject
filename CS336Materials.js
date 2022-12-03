@@ -46,5 +46,9 @@ class CS336Materials{
         this.surfaceAttributes = newSurfaceAttributes;
     }
 
+    create2DTexture(filePath){
+        this.textureAttributes = new CS336Texture("2D");
+        this.textureAttributes.imagePaths = filePath;
+    }
 
 }

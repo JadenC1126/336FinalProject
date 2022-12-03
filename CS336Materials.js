@@ -13,9 +13,9 @@ class CS336Materials{
     texture_cube = false;
 
     surfaceAttributes = new Float32Array([
-        1.0, 0.0, 0.0,
-        1.0, 0.0, 0.0,
-        0.1, 0.1, 0.1,
+        0.2, 0.2, 0.2,
+        0.2, 0.2, 0.2,
+        0.2, 0.2, 0.2,
       ]);
     textureAttributes = null;
 

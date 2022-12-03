@@ -246,7 +246,7 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
             // TODO: account for textures
             float diffuseFactor = max(dot(L, N), 0.0);
             // replace matProps[2][2] with shininess?
-            float specularFactor = pow(max(dot(R, V), 0.0), materialProperties[2][2]);
+            float specularFactor = pow(max(dot(R, V), 5.0), materialProperties[2][2]);
             return ambient + diffuse * diffuseFactor + specular * specularFactor;
         }
         void main() {

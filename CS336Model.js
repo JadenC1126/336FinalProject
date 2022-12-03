@@ -72,9 +72,9 @@ CS336Model.prototype.render = async function(gl, worldMatrix, lights, camera) {
 CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera) {
     // Pull or load texture if applicable
 
-    if (this.materialProperties.texture_2d || this.materialProperties.texture_cube){
-        await this.materialProperties.textureAttributes.loadImage();
-    }
+    // if (this.materialProperties.texture_2d || this.materialProperties.texture_cube){
+    //     await this.materialProperties.textureAttributes.loadImage();
+    // }
 
     const { lastLightCount } = this.shaderAttributes;
     if( lastLightCount !== lights.length ) {
@@ -129,11 +129,10 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
 
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.vertexAttribPointer(positionIndex, 3, gl.FLOAT, false, 0, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
-    // gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
     gl.vertexAttribPointer(normalIndex, 3, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
     let textureHandle = null;
     if( texCoordIndex >= 0 ) {
         gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
@@ -145,7 +144,6 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     }
 
     if (this.materialProperties.texture_2d || this.materialProperties.texture_cube){
-        await this.materialProperties.textureAttributes.createAndLoad();
         textureHandle = this.materialProperties.textureAttributes.textureHandler;
     }
 
@@ -177,31 +175,20 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         }
     }
 
-    if (textureHandle){
-        var textureUnit = 0;
+    if (textureHandle !== null){
+        var textureUnit = 1;
         gl.activeTexture(gl.TEXTURE0 + textureUnit);
         gl.bindTexture(gl.TEXTURE_2D, textureHandle);
-      
-        // once we have the texture handle bound, we don't need 3
-        // to be the active texture unit any longer - what matters is
-        // that we pass in 3 when setting the uniform for the sampler
-        gl.activeTexture(gl.TEXTURE0);
-      
         let loc2 = gl.getUniformLocation(shaderProgram, "u_Sampler");
-      
-        // sampler value in shader is set to index for texture unit
         gl.uniform1i(loc2, textureUnit);
     }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.drawArrays(gl.TRIANGLES, 0, this.modelProperties.numVertices);
 
     gl.disableVertexAttribArray(positionIndex);
     gl.disableVertexAttribArray(normalIndex);
     if( texCoordIndex >= 0 ) gl.disableVertexAttribArray(texCoordIndex);
     if ( colorIndex >= 0 ) gl.disableVertexAttribArray(colorIndex);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     gl.useProgram(null);
 }
@@ -282,7 +269,7 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
             vec3 N = normalize(fN);
             vec3 V = normalize(fV);
             vec4 tmpColor = ${this.materialProperties.solid ? 'color' : 'vec4(0.0, 0.0, 0.0, 1.0)'};
-            tmpColor = ${this.materialProperties.texture_2d ? 'texture2D(u_Sampler, fTexCoord);' : 'color;'};
+            tmpColor = ${this.materialProperties.texture_2d ? 'texture2D(u_Sampler, fTexCoord);' : 'color;'}
             ${lightCount > 0 ?
                 `
                     for( int i = 0; i < MAX_LIGHTS; i++ ) {

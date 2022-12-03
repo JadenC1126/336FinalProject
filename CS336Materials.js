@@ -27,12 +27,10 @@ class CS336Materials{
         if (type === "2D"){
             this.texture_2d = true;
             this.adjust_surface = true;
-        }
-        else if (type === "cube"){
+        } else if (type === "cube"){
             this.texture_cube = true;
             this.adjust_surface = true;
-        }
-        else {
+        } else {
             this.solid = true;
             this.adjust_surface = true;
         }

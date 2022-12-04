@@ -17,7 +17,7 @@ var textureObject;
 
 async function main() {
     gl = getGraphicsContext("theCanvas");
-
+    window.onkeypress = handleKeyPress;
     const scene = new CS336Scene({ withAxis: true });
 
     // const geometry = new THREE.TorusKnotGeometry(1);
@@ -75,4 +75,63 @@ async function main() {
 
     animate();
 
+}
+//from http://javascript.info/tutorial/keyboard-events
+function getChar(event) {
+    if (event.which == null) {
+     return String.fromCharCode(event.keyCode) // IE
+    } else if (event.which!=0 && event.charCode!=0) {
+     return String.fromCharCode(event.which)   // the rest
+    } else {
+     return null // special key
+    }
+}
+// handler for key press events adjusts object rotations
+function handleKeyPress(event)
+{
+	var ch = getChar(event);
+	switch(ch)
+	{
+	case 't':
+	  torsoDummy.rotateY(15);
+		break;
+	case 'T':
+	  torsoDummy.rotateY(-15);
+		break;
+	case 's':
+	  shoulderDummy.rotateX(-15);
+		break;
+	case 'S':
+	  shoulderDummy.rotateX(15);
+		break;
+	case 'a':
+	  armDummy.rotateX(-15);
+		break;
+	case 'A':
+	  armDummy.rotateX(15);
+		break;
+	case 'h':
+	  hand.rotateY(15);
+		break;
+	case 'H':
+	  hand.rotateY(-15);
+		break;
+	case 'l':
+	  head.rotateY(15);
+ 		break;
+	case 'L':
+	  head.rotateY(-15);
+ 		break;
+
+  case 'g':
+    scale *= 1.25;
+    torsoDummy.setScale(scale, scale, scale);
+    break;
+  case 'G':
+    scale *= 0.8;
+    torsoDummy.setScale(scale, scale, scale);
+    break;
+	default:
+			return;
+	}
 }

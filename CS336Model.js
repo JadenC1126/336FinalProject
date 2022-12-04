@@ -32,10 +32,31 @@ CS336Model.prototype.loadModelBuffers = function() {
     } = this.modelProperties;
 
     let color = this.materialProperties.color;
+    
     let colors = [];
     for( let i = 0; i < numVertices; i++ ) {
         colors.push(color[0], color[1], color[2], color[3]);
     }
+    var texCoords2 = new Float32Array([
+        0.0, 0.0,
+        1.0, 0.0,
+        1.0, 1.0,
+        0.0, 0.0,
+        1.0, 1.0,
+        0.0, 1.0,
+        ]);
+        let texCoords1 = [];
+    for (let i = 0; i < 86402/10; i++){
+        texCoords1.push(
+            0.0, 0.0,
+            1.0, 0.0,
+            1.0, 1.0,
+            0.0, 0.0,
+            1.0, 1.0,
+            0.0, 1.0);
+    }
+    // console.log(texCoords);
+    // this.materialProperties.textureAttributes.vertices = texCoords;
 
     const vertexBuffer = createAndLoadBuffer(vertices);
     const normalBuffer = createAndLoadBuffer(normals);
@@ -44,7 +65,9 @@ CS336Model.prototype.loadModelBuffers = function() {
     let colorBuffer = null;
 
     if( this.materialProperties.texture_2d || this.materialProperties.texture_cube ) {
-        texCoordBuffer = createAndLoadBuffer(texCoords);
+        console.log("---------");
+        console.log(texCoords1);
+        texCoordBuffer = createAndLoadBuffer(new Float32Array(texCoords1));
     }
     if (this.materialProperties.solid){
         colorBuffer = createAndLoadBuffer(new Float32Array(colors));
@@ -127,13 +150,6 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         colorBuffer,
     } = this.modelProperties.buffers;
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.vertexAttribPointer(positionIndex, 3, gl.FLOAT, false, 0, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
-    // gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.vertexAttribPointer(normalIndex, 3, gl.FLOAT, false, 0, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
     let textureHandle = null;
     if( texCoordIndex >= 0 ) {
         gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
@@ -148,6 +164,12 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         await this.materialProperties.textureAttributes.createAndLoad();
         textureHandle = this.materialProperties.textureAttributes.textureHandler;
     }
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.vertexAttribPointer(positionIndex, 3, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
+    gl.vertexAttribPointer(normalIndex, 3, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     const projection = camera.getProjection();
     const view = camera.getView();
@@ -177,23 +199,14 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         }
     }
 
-    if (textureHandle){
-        var textureUnit = 0;
+    if (textureHandle !== null){
+        var textureUnit = 1;
         gl.activeTexture(gl.TEXTURE0 + textureUnit);
         gl.bindTexture(gl.TEXTURE_2D, textureHandle);
-      
-        // once we have the texture handle bound, we don't need 3
-        // to be the active texture unit any longer - what matters is
-        // that we pass in 3 when setting the uniform for the sampler
-        gl.activeTexture(gl.TEXTURE0);
-      
         let loc2 = gl.getUniformLocation(shaderProgram, "u_Sampler");
-      
-        // sampler value in shader is set to index for texture unit
         gl.uniform1i(loc2, textureUnit);
     }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.drawArrays(gl.TRIANGLES, 0, this.modelProperties.numVertices);
 
     gl.disableVertexAttribArray(positionIndex);

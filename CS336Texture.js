@@ -4,14 +4,17 @@ class CS336Texture { // THREE materials
     texture_type = null;
     texture_loader = null;
     imagePaths = null;
-    loaded = false;
+    loaded_image = false;
+    loaded_buffer = false;
 
+    vertices = null;
     // solid vs not solid
     
 
     // type can be either "2D" or "cube"
-    constructor(type){
+    constructor(type, vertices){
         this.type = type;
+        this.vertices = vertices;
         if (this.type === "2D"){
             this.texture_type = "sampler2D";
             this.texture_loader = "texture2D";
@@ -29,7 +32,7 @@ class CS336Texture { // THREE materials
     }
 
     async loadImage(){
-        if (!this.loaded){
+        if (!this.loaded_image){
             if (this.type === "2D"){
                 this.images = await loadImagePromise(this.imagePaths);
             }
@@ -41,10 +44,11 @@ class CS336Texture { // THREE materials
                 }
             }
         }
+        this.loaded_image = true;
     }
 
     async createAndLoad(){
-        if (!this.loaded){
+        if (!this.loaded_buffer){
             if (this.type === "2D"){
                 this.textureHandler = await createAndLoadTexture(this.images);
             }
@@ -52,6 +56,7 @@ class CS336Texture { // THREE materials
                 this.textureHandler = await createAndLoadCubeTexture(this.images);
             }
         }
+        this.loaded_buffer = true;
     }
 
     get textureHandle(){

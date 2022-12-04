@@ -49,4 +49,9 @@ class CS336Materials{
         this.textureAttributes.imagePaths = filePath;
     }
 
+    createTextureCube(filePaths){
+        this.textureAttributes = new CS336Texture("cube");
+        this.textureAttributes.imagePaths = filePaths;
+    }
+
 }

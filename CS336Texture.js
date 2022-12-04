@@ -34,9 +34,6 @@ class CS336Texture { // THREE materials
     async loadImage(){
         if (this.loaded_image === false){
             if (this.type === "2D"){
-                console.log("***** tetxure");
-                console.log(this.loaded_image);
-                console.log(this.imagePaths);
                 this.images = await loadImagePromise(this.imagePaths);
                 this.loaded_image = true;
             }
@@ -44,7 +41,7 @@ class CS336Texture { // THREE materials
                 this.images = [];
                 for (let i = 0; i < this.imagePaths.length; ++i)
                 {
-                this.images[i] = await loadImagePromise(this.imagePaths[i]);
+                    this.images[i] = await loadImagePromise(this.imagePaths[i]);
                 }
             }
         }

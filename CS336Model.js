@@ -120,7 +120,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     }
     let texCoordIndex = null;
     let colorIndex = null;
-    if( this.materialProperties.texture_2d || this.materialProperties.texture_cube ) {
+    if( this.materialProperties.texture_2d) {
         texCoordIndex = gl.getAttribLocation(shaderProgram, "a_TexCoord");
         if( texCoordIndex < 0 ) {
             console.log("Failed to get the storage location of a_TexCoord");
@@ -197,11 +197,20 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         }
     }
 
-    if (textureHandle !== null){
+    if (this.materialProperties.texture_2d){
         var textureUnit = 1;
         gl.activeTexture(gl.TEXTURE0 + textureUnit);
         gl.bindTexture(gl.TEXTURE_2D, textureHandle);
         let loc2 = gl.getUniformLocation(shaderProgram, "u_Sampler");
+        gl.uniform1i(loc2, textureUnit);
+    }
+    else if (this.materialProperties.texture_cube){
+        var textureUnit = 0;
+        gl.activeTexture(gl.TEXTURE0 + textureUnit);
+        gl.bindTexture(gl.TEXTURE_CUBE_MAP, textureHandle);
+        var loc2 = gl.getUniformLocation(shaderProgram, "u_Sampler");
+    
+        // sampler value in shader is set to index for texture unit
         gl.uniform1i(loc2, textureUnit);
     }
 
@@ -232,16 +241,18 @@ CS336Model.prototype.createVertexShader = function(lightCount) {
         ${lightCount > 0 ? 'varying vec3 fL[MAX_LIGHTS];' : ''}
         varying vec3 fN;
         varying vec3 fV;
-        // TODO: texture coordinates
-        ${this.materialProperties.texture_2d || this.materialProperties.texture_cube ? 'attribute vec2 a_TexCoord;':''}
-        ${this.materialProperties.texture_2d || this.materialProperties.texture_cube ? 'varying vec2 fTexCoord;':''}
+
+        ${this.materialProperties.texture_2d ? 'attribute vec2 a_TexCoord;':''}
+        ${this.materialProperties.texture_2d ? 'varying vec2 fTexCoord;':''}
+        ${this.materialProperties.texture_cube ? 'varying vec3 fTexVector;':''}
+
         void main() {
             vec4 posEye = view * model * a_Position;
             fN = normalMatrix * a_Normal;
             fV = normalize(-(posEye).xyz);
             ${this.materialProperties.solid ? 'color = a_Color;': ''}
-            ${this.materialProperties.texture_2d || this.materialProperties.texture_cube ? 'fTexCoord = a_TexCoord;':''}
-
+            ${this.materialProperties.texture_2d ? 'fTexCoord = a_TexCoord;':''}
+            ${this.materialProperties.texture_cube ? 'fTexVector = a_Position.xyz;':''}
             ${lightCount > 0 ?
                 `
                     for( int i = 0; i < MAX_LIGHTS; i++ ) {
@@ -272,7 +283,8 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
         varying vec3 fV;
         // TODO: texture coordinates
 
-        ${this.materialProperties.texture_2d || this.materialProperties.texture_cube ? 'varying vec2 fTexCoord;': ''}
+        ${this.materialProperties.texture_2d ? 'varying vec2 fTexCoord;': ''}
+        ${this.materialProperties.texture_cube ? 'varying vec3 fTexVector;': ''}
 
         vec4 getLightContribution(vec3 fL, mat3 lightProps, vec3 N, vec3 V) {
             vec3 L = normalize(fL);
@@ -290,8 +302,9 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
         void main() {
             vec3 N = normalize(fN);
             vec3 V = normalize(fV);
-            vec4 tmpColor = ${this.materialProperties.solid ? 'color' : 'vec4(0.0, 0.0, 0.0, 1.0)'};
-            tmpColor = ${this.materialProperties.texture_2d ? 'texture2D(u_Sampler, fTexCoord);' : 'color;'}
+            // vec4 tmpColor = ${this.materialProperties.solid ? 'color' : 'vec4(0.0, 0.0, 0.0, 1.0)'};
+            // tmpColor = ${this.materialProperties.texture_2d ? 'texture2D(u_Sampler, fTexCoord);' : 'color;'}
+            vec4 tmpColor = ${this.materialProperties.texture_cube ? 'textureCube(u_Sampler, fTexVector);' : 'color;'}
             ${lightCount > 0 ?
                 `
                     for( int i = 0; i < MAX_LIGHTS; i++ ) {

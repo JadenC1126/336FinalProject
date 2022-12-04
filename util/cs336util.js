@@ -224,6 +224,7 @@ function getGraphicsContext(canvasId) {
   
     for (var i = 0; i < 6; ++i)
     {
+      console.log(images[i]);
       gl.texImage2D(imageTargets[i], 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[i]);
     }
   

@@ -98,7 +98,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     }
 
     const { lastLightCount } = this.shaderAttributes;
-    if( lastLightCount !== lights.length ) {
+    if( lastLightCount !== lights.length || this.shaderAttributes.shaderProgram == null ) {
         this.shaderAttributes = {
             lastLightCount: lights.length,
             shaderProgram: createShaderProgram(gl, this.createVertexShader(lights.length), this.createFragmentShader(lights.length)),
@@ -206,7 +206,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         gl.uniform1i(loc2, textureUnit);
     }
     else if (this.materialProperties.texture_cube){
-        var textureUnit = 0;
+        var textureUnit = 1;
         gl.activeTexture(gl.TEXTURE0 + textureUnit);
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, textureHandle);
         var loc2 = gl.getUniformLocation(shaderProgram, "u_Sampler");
@@ -272,18 +272,14 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
         ${lightCount > 0 ? `#define MAX_LIGHTS ${lightCount}` : ''}
         precision mediump float;
         ${lightCount > 0 ? 'uniform mat3 lightProperties[MAX_LIGHTS];' : ''}
-        // Force this exist when lights are used?
         ${this.materialProperties && this.materialProperties.adjust_surface ? 'uniform mat3 materialProperties;' : ''}
         ${this.materialProperties && this.materialProperties.texture_2d ? 'uniform sampler2D u_Sampler;' : ''}
         ${this.materialProperties && this.materialProperties.texture_cube ? 'uniform samplerCube u_Sampler;' : ''}
         ${this.materialProperties.solid ? 'varying vec4 color;': ''}
         
         ${lightCount > 0 ? 'varying vec3 fL[MAX_LIGHTS];' : ''}
-
         varying vec3 fN;
         varying vec3 fV;
-        // TODO: texture coordinates
-
         ${this.materialProperties.texture_2d ? 'varying vec2 fTexCoord;': ''}
         ${this.materialProperties.texture_cube ? 'varying vec3 fTexVector;': ''}
 
@@ -294,24 +290,23 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
             vec4 ambient = vec4(products[0], 1.0);
             vec4 diffuse = vec4(products[1], 1.0);
             vec4 specular = vec4(products[2], 1.0);
-            // TODO: account for textures
             float diffuseFactor = max(dot(L, N), 0.0);
-            // replace matProps[2][2] with shininess?
             float specularFactor = pow(max(dot(R, V), 0.0), 5.0);
             return ambient + diffuse * diffuseFactor + specular * specularFactor;
         }
         void main() {
             vec3 N = normalize(fN);
             vec3 V = normalize(fV);
-            // vec4 tmpColor = ${this.materialProperties.solid ? 'color' : 'vec4(0.0, 0.0, 0.0, 1.0)'};
-            // tmpColor = ${this.materialProperties.texture_2d ? 'texture2D(u_Sampler, fTexCoord);' : 'color;'}
-            vec4 tmpColor = ${this.materialProperties.texture_cube ? 'textureCube(u_Sampler, fTexVector);' : 'color;'}
+            vec4 tmpColor = ${
+                this.materialProperties.solid ? 'color;' :
+                this.materialProperties.texture_2d ? 'texture2D(u_Sampler, fTexCoord);' :
+                this.materialProperties.texture_cube ?  'textureCube(u_Sampler, fTexVector);' :
+                'vec4(0.0, 0.0, 0.0, 1.0);'
+            }
             ${lightCount > 0 ?
-                `
-                    for( int i = 0; i < MAX_LIGHTS; i++ ) {
-                        tmpColor += getLightContribution(fL[i], lightProperties[i], N, V);
-                    }
-                ` : '// some color based on texture without light'
+                `for( int i = 0; i < MAX_LIGHTS; i++ ) {
+                    tmpColor += getLightContribution(fL[i], lightProperties[i], N, V);
+                }` : ''
             }
             gl_FragColor = tmpColor ${lightCount > 0 ? '/ float(MAX_LIGHTS)' : ''};
             gl_FragColor.a = 1.0;

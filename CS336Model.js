@@ -158,8 +158,9 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         gl.vertexAttribPointer(colorIndex, 4, gl.FLOAT, false, 0, 0);
     }
 
-    if ((this.materialProperties.texture_2d || this.materialProperties.texture_cube) && !this.materialProperties.textureAttributes.loaded_buffer){
-        await this.materialProperties.textureAttributes.createAndLoad();
+    if ( this.materialProperties.texture_2d || this.materialProperties.texture_cube ){
+        if( !this.materialProperties.textureAttributes.loaded_buffer )
+            await this.materialProperties.textureAttributes.createAndLoad();
         textureHandle = this.materialProperties.textureAttributes.textureHandler;
     }
 

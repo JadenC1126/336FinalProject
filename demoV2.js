@@ -25,7 +25,7 @@ async function main() {
         modelProperties: getModelData(sphereGeom),
         materialProperties: sphereMat,
     });
-    sphere.materialProperties.setColor([0.25, 0.25, 0.25, 1.0]);
+    sphere.materialProperties.setColor([0.5, 0.5, 0.5, 1.0]);
     sphere.loadModelBuffers();
     sphere.setPosition(0, 0, 0);
 
@@ -61,9 +61,9 @@ async function handleKeyPress(event) {
                 y: 2.5,
                 z: 0,
                 lightProperties: new Float32Array([
-                    0.0, 0.5, 0.0, // ambient
-                    0.0, 0.2, 0.0, // diffuse
-                    0.0, 0.5, 0.0 // specular
+                    0.2, 0.2, 0.2, // ambient
+                    0.7, 0.0, 0.0, // diffuse
+                    0.7, 0.0, 0.0 // specular
                 ])
             }))
             break;
@@ -73,9 +73,9 @@ async function handleKeyPress(event) {
                 y: 2.5,
                 z: 1.25,
                 lightProperties: new Float32Array([
-                    0.5, 0.0, 0.0, // ambient
-                    0.2, 0.0, 0.0, // diffuse
-                    0.5, 0.0, 0.0 // specular
+                    0.2, 0.2, 0.2, // ambient
+                    0.0, 0.7, 0.0, // diffuse
+                    0.0, 0.7, 0.0 // specular
                 ])
             }))
             scene.addLight(new CS336Light({
@@ -83,9 +83,9 @@ async function handleKeyPress(event) {
                 y: 2.5,
                 z: -1.25,
                 lightProperties: new Float32Array([
-                    0.0, 0.0, 0.5, // ambient
-                    0.0, 0.0, 0.2, // diffuse
-                    0.0, 0.0, 0.5 // specular
+                    0.2, 0.2, 0.2, // ambient
+                    0.0, 0.0, 0.7, // diffuse
+                    0.0, 0.0, 0.7 // specular
                     ])
             }))
             break;

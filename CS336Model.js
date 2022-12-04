@@ -210,8 +210,6 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         gl.activeTexture(gl.TEXTURE0 + textureUnit);
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, textureHandle);
         var loc2 = gl.getUniformLocation(shaderProgram, "u_Sampler");
-    
-        // sampler value in shader is set to index for texture unit
         gl.uniform1i(loc2, textureUnit);
     }
 
@@ -291,7 +289,7 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
             vec4 diffuse = vec4(products[1], 1.0);
             vec4 specular = vec4(products[2], 1.0);
             float diffuseFactor = max(dot(L, N), 0.0);
-            float specularFactor = pow(max(dot(R, V), 0.0), 5.0);
+            float specularFactor = pow(max(dot(V, R), 0.0), 20.0);
             return ambient + diffuse * diffuseFactor + specular * specularFactor;
         }
         void main() {

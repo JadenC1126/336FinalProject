@@ -6,7 +6,15 @@ async function main() {
     const scene = new CS336Scene({ withAxis: true });
 
     const geometry = new THREE.SphereGeometry(1);
-    const material = new CS336Materials("solid");
+    const material = new CS336Materials("2D");
+    material.create2DTexture("./textures/check64.png");
+    await material.textureAttributes.loadImage();
+    material.textureAttributes.createAndLoad();
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, material.textureAttributes.textureHandler);
+    gl.generateMipmap(gl.TEXTURE_2D);
+
     const sphere = new CS336Model({
         draw: true,
         modelProperties: getModelData(geometry),
@@ -17,7 +25,7 @@ async function main() {
     const sphere2 = new CS336Model({
         draw: true,
         modelProperties: getModelData(geometry),
-        materialProperties: material,
+        materialProperties: new CS336Materials("solid"),
     });
     sphere2.materialProperties.setColor([0.25, 0.25, 0.25, 1.0]);
     sphere2.loadModelBuffers();

@@ -50,10 +50,10 @@ class CS336Texture { // THREE materials
     async createAndLoad(){
         if (!this.loaded_buffer){
             if (this.type === "2D"){
-                this.textureHandler = await createAndLoadTexture(this.images);
+                this.textureHandler = createAndLoadTexture(this.images);
             }
             else {
-                this.textureHandler = await createAndLoadCubeTexture(this.images);
+                this.textureHandler = createAndLoadCubeTexture(this.images);
             }
         }
         this.loaded_buffer = true;

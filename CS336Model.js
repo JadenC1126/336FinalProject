@@ -96,6 +96,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     // Pull or load texture if applicable
 
     if (this.materialProperties.texture_2d || this.materialProperties.texture_cube){
+        console.log("Pppp");
         await this.materialProperties.textureAttributes.loadImage();
     }
 
@@ -214,8 +215,6 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     if( texCoordIndex >= 0 ) gl.disableVertexAttribArray(texCoordIndex);
     if ( colorIndex >= 0 ) gl.disableVertexAttribArray(colorIndex);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
     gl.useProgram(null);
 }
 
@@ -295,7 +294,7 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
             vec3 N = normalize(fN);
             vec3 V = normalize(fV);
             vec4 tmpColor = ${this.materialProperties.solid ? 'color' : 'vec4(0.0, 0.0, 0.0, 1.0)'};
-            tmpColor = ${this.materialProperties.texture_2d ? 'texture2D(u_Sampler, fTexCoord);' : 'color;'};
+            tmpColor = ${this.materialProperties.texture_2d ? 'texture2D(u_Sampler, fTexCoord);' : 'color;'}
             ${lightCount > 0 ?
                 `
                     for( int i = 0; i < MAX_LIGHTS; i++ ) {

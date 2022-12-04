@@ -10,6 +10,9 @@ async function main() {
     material.create2DTexture("./textures/check64.png");
     await material.textureAttributes.loadImage();
     material.textureAttributes.createAndLoad();
+    material2.create2DTexture("./textures/marble.png");
+    await material2.textureAttributes.loadImage();
+    material2.textureAttributes.createAndLoad();
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, material.textureAttributes.textureHandler);

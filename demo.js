@@ -13,7 +13,7 @@ async function main() {
     const scene = new CS336Scene({ withAxis: true });
 
     const geometry = new THREE.SphereGeometry(1);
-    const material1 = new CS336Materials("solid");
+    const material1 = new CS336Materials("2D");
     const material2 = new CS336Materials("2D");
     const sphere = new CS336Model({
         draw: true,

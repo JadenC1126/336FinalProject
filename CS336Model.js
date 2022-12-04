@@ -37,14 +37,14 @@ CS336Model.prototype.loadModelBuffers = function() {
     for( let i = 0; i < numVertices; i++ ) {
         colors.push(color[0], color[1], color[2], color[3]);
     }
-    var texCoords2 = new Float32Array([
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        ]);
+    // var texCoords1 = new Float32Array([
+    //     0.0, 0.0,
+    //     1.0, 0.0,
+    //     1.0, 1.0,
+    //     0.0, 0.0,
+    //     1.0, 1.0,
+    //     0.0, 1.0,
+    //     ]);
         let texCoords1 = [];
     for (let i = 0; i < 86402/10; i++){
         texCoords1.push(
@@ -55,8 +55,6 @@ CS336Model.prototype.loadModelBuffers = function() {
             1.0, 1.0,
             0.0, 1.0);
     }
-    // console.log(texCoords);
-    // this.materialProperties.textureAttributes.vertices = texCoords;
 
     const vertexBuffer = createAndLoadBuffer(vertices);
     const normalBuffer = createAndLoadBuffer(normals);
@@ -96,7 +94,6 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     // Pull or load texture if applicable
 
     if (this.materialProperties.texture_2d || this.materialProperties.texture_cube){
-        console.log("Pppp");
         await this.materialProperties.textureAttributes.loadImage();
     }
 

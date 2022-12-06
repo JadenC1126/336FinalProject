@@ -140,6 +140,17 @@ async function handleKeyPress(event) {
             gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeTexture.textureAttributes.textureHandler);
             gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
             break;
+        case '5':
+            scene.addLight(new CS336Light({
+                x: 1.25,
+                y: -2.5,
+                z: -1.25,
+                lightProperties: new Float32Array([
+                    0.2, 0.2, 0.2, // ambient
+                    0.0, 0.0, 0.7, // diffuse
+                    0.0, 0.0, 0.7 // specular
+                    ])
+            }))
         default: scene.camera.keyControl(ch);
     }
 }

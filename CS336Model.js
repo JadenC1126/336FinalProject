@@ -37,15 +37,7 @@ CS336Model.prototype.loadModelBuffers = function() {
     for( let i = 0; i < numVertices; i++ ) {
         colors.push(color[0], color[1], color[2], color[3]);
     }
-    // var texCoords1 = new Float32Array([
-    //     0.0, 0.0,
-    //     1.0, 0.0,
-    //     1.0, 1.0,
-    //     0.0, 0.0,
-    //     1.0, 1.0,
-    //     0.0, 1.0,
-    //     ]);
-        let texCoords1 = [];
+    let texCoords1 = [];
     for (let i = 0; i < 86402/10; i++){
         texCoords1.push(
             0.0, 0.0,
@@ -62,9 +54,7 @@ CS336Model.prototype.loadModelBuffers = function() {
     let texCoordBuffer = null;
     let colorBuffer = null;
 
-    if( this.materialProperties.texture_2d || this.materialProperties.texture_cube ) {
-        console.log("---------");
-        console.log(texCoords1);
+    if( this.materialProperties.texture2D || this.materialProperties.textureCube ) {
         texCoordBuffer = createAndLoadBuffer(new Float32Array(texCoords1));
     }
     if (this.materialProperties.solid){
@@ -86,14 +76,14 @@ CS336Model.prototype.render = async function(gl, worldMatrix, lights, camera) {
     if( this.draw ) await this.renderSelf(gl, world, lights, camera);
     
     for( let i = 0; i < this.children.length; i++ ) {
-        await this.children[i].render(gl, world, lights, camera);
+        this.children[i].render(gl, world, lights, camera);
     }
 }
 
 CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera) {
     // Pull or load texture if applicable
 
-    if ((this.materialProperties.texture_2d || this.materialProperties.texture_cube) && !this.materialProperties.textureAttributes.loaded_image){
+    if ((this.materialProperties.texture2D || this.materialProperties.textureCube) && !this.materialProperties.textureAttributes.loadedImage){
         await this.materialProperties.textureAttributes.loadImage();
     }
 
@@ -120,7 +110,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     }
     let texCoordIndex = null;
     let colorIndex = null;
-    if( this.materialProperties.texture_2d) {
+    if( this.materialProperties.texture2D) {
         texCoordIndex = gl.getAttribLocation(shaderProgram, "a_TexCoord");
         if( texCoordIndex < 0 ) {
             console.log("Failed to get the storage location of a_TexCoord");
@@ -158,8 +148,8 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         gl.vertexAttribPointer(colorIndex, 4, gl.FLOAT, false, 0, 0);
     }
 
-    if ( this.materialProperties.texture_2d || this.materialProperties.texture_cube ){
-        if( !this.materialProperties.textureAttributes.loaded_buffer )
+    if ( this.materialProperties.texture2D || this.materialProperties.textureCube ){
+        if( !this.materialProperties.textureAttributes.loadedBuffer )
             await this.materialProperties.textureAttributes.createAndLoad();
         textureHandle = this.materialProperties.textureAttributes.textureHandler;
     }
@@ -190,7 +180,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         gl.uniformMatrix3fv(loc, false, light.getLightProperties());
     })
 
-    if( this.materialProperties.adjust_surface ) {
+    if( this.materialProperties.adjustSurface ) {
         const surfaceAttributes = this.materialProperties.surfaceAttributes;
         if( surfaceAttributes ) {
             loc = gl.getUniformLocation(shaderProgram, "materialProperties");
@@ -198,14 +188,14 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         }
     }
 
-    if (this.materialProperties.texture_2d){
+    if (this.materialProperties.texture2D){
         var textureUnit = 1;
         gl.activeTexture(gl.TEXTURE0 + textureUnit);
         gl.bindTexture(gl.TEXTURE_2D, textureHandle);
         let loc2 = gl.getUniformLocation(shaderProgram, "u_Sampler");
         gl.uniform1i(loc2, textureUnit);
     }
-    else if (this.materialProperties.texture_cube){
+    else if (this.materialProperties.textureCube){
         var textureUnit = 1;
         gl.activeTexture(gl.TEXTURE0 + textureUnit);
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, textureHandle);
@@ -241,17 +231,17 @@ CS336Model.prototype.createVertexShader = function(lightCount) {
         varying vec3 fN;
         varying vec3 fV;
 
-        ${this.materialProperties.texture_2d ? 'attribute vec2 a_TexCoord;':''}
-        ${this.materialProperties.texture_2d ? 'varying vec2 fTexCoord;':''}
-        ${this.materialProperties.texture_cube ? 'varying vec3 fTexVector;':''}
+        ${this.materialProperties.texture2D ? 'attribute vec2 a_TexCoord;':''}
+        ${this.materialProperties.texture2D ? 'varying vec2 fTexCoord;':''}
+        ${this.materialProperties.textureCube ? 'varying vec3 fTexVector;':''}
 
         void main() {
             vec4 posEye = view * model * a_Position;
             fN = normalMatrix * a_Normal;
             fV = normalize(-(posEye).xyz);
             ${this.materialProperties.solid ? 'color = a_Color;': ''}
-            ${this.materialProperties.texture_2d ? 'fTexCoord = a_TexCoord;':''}
-            ${this.materialProperties.texture_cube ? 'fTexVector = a_Position.xyz;':''}
+            ${this.materialProperties.texture2D ? 'fTexCoord = a_TexCoord;':''}
+            ${this.materialProperties.textureCube ? 'fTexVector = a_Position.xyz;':''}
             ${lightCount > 0 ?
                 `
                     for( int i = 0; i < MAX_LIGHTS; i++ ) {
@@ -270,16 +260,16 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
         ${lightCount > 0 ? `#define MAX_LIGHTS ${lightCount}` : ''}
         precision mediump float;
         ${lightCount > 0 ? 'uniform mat3 lightProperties[MAX_LIGHTS];' : ''}
-        ${this.materialProperties && this.materialProperties.adjust_surface ? 'uniform mat3 materialProperties;' : ''}
-        ${this.materialProperties && this.materialProperties.texture_2d ? 'uniform sampler2D u_Sampler;' : ''}
-        ${this.materialProperties && this.materialProperties.texture_cube ? 'uniform samplerCube u_Sampler;' : ''}
+        ${this.materialProperties && this.materialProperties.adjustSurface ? 'uniform mat3 materialProperties;' : ''}
+        ${this.materialProperties && this.materialProperties.texture2D ? 'uniform sampler2D u_Sampler;' : ''}
+        ${this.materialProperties && this.materialProperties.textureCube ? 'uniform samplerCube u_Sampler;' : ''}
         ${this.materialProperties.solid ? 'varying vec4 color;': ''}
         
         ${lightCount > 0 ? 'varying vec3 fL[MAX_LIGHTS];' : ''}
         varying vec3 fN;
         varying vec3 fV;
-        ${this.materialProperties.texture_2d ? 'varying vec2 fTexCoord;': ''}
-        ${this.materialProperties.texture_cube ? 'varying vec3 fTexVector;': ''}
+        ${this.materialProperties.texture2D ? 'varying vec2 fTexCoord;': ''}
+        ${this.materialProperties.textureCube ? 'varying vec3 fTexVector;': ''}
 
         vec4 getLightContribution(vec3 fL, mat3 lightProps, vec3 N, vec3 V) {
             vec3 L = normalize(fL);
@@ -297,8 +287,8 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
             vec3 V = normalize(fV);
             vec4 tmpColor = ${
                 this.materialProperties.solid ? 'color;' :
-                this.materialProperties.texture_2d ? 'texture2D(u_Sampler, fTexCoord);' :
-                this.materialProperties.texture_cube ?  'textureCube(u_Sampler, fTexVector);' :
+                this.materialProperties.texture2D ? 'texture2D(u_Sampler, fTexCoord);' :
+                this.materialProperties.textureCube ?  'textureCube(u_Sampler, fTexVector);' :
                 'vec4(0.0, 0.0, 0.0, 1.0);'
             }
             ${lightCount > 0 ?
@@ -310,54 +300,4 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
             gl_FragColor.a = 1.0;
         }
     `;
-}
-
- // helper function renders the cube based on the given model transformation
- CS336Model.prototype.drawCube = function(matrix)
-{
-	  // bind the shader
-	  gl.useProgram(lightingShader);
-
-	  // get the index for the a_Position attribute defined in the vertex shader
-	  var positionIndex = gl.getAttribLocation(lightingShader, 'a_Position');
-	  if (positionIndex < 0) {
-	    console.log('Failed to get the storage location of a_Position');
-	    return;
-	  }
-
-	  var normalIndex = gl.getAttribLocation(lightingShader, 'a_Normal');
-	  if (normalIndex < 0) {
-		    console.log('Failed to get the storage location of a_Normal');
-		    return;
-		  }
-
-	  // "enable" the a_position attribute
-	  gl.enableVertexAttribArray(positionIndex);
-	  gl.enableVertexAttribArray(normalIndex);
-
-	  // bind data for points and normals
-	  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-	  gl.vertexAttribPointer(positionIndex, 3, gl.FLOAT, false, 0, 0);
-	  gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
-	  gl.vertexAttribPointer(normalIndex, 3, gl.FLOAT, false, 0, 0);
-	  gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-	  var loc = gl.getUniformLocation(lightingShader, "view");
-	  gl.uniformMatrix4fv(loc, false, view.elements);
-	  loc = gl.getUniformLocation(lightingShader, "projection");
-	  gl.uniformMatrix4fv(loc, false, projection.elements);
-	  loc = gl.getUniformLocation(lightingShader, "u_Color");
-	  gl.uniform4f(loc, 0.0, 1.0, 0.0, 1.0);
-    var loc = gl.getUniformLocation(lightingShader, "lightPosition");
-    gl.uniform4f(loc, 5.0, 10.0, 5.0, 1.0);
-
-	  var modelMatrixloc = gl.getUniformLocation(lightingShader, "model");
-	  var normalMatrixLoc = gl.getUniformLocation(lightingShader, "normalMatrix");
-
-	  gl.uniformMatrix4fv(modelMatrixloc, false, matrix.elements);
-	  gl.uniformMatrix3fv(normalMatrixLoc, false, makeNormalMatrixElements(matrix, view));
-
-	  gl.drawArrays(gl.TRIANGLES, 0, 36);
-
-	  gl.useProgram(null);
 }

@@ -1,4 +1,4 @@
-var gl;
+var gl = getGraphicsContext("theCanvas");
 
 var imagePath = "./textures/check64.png";
 var imagePath2 = "./textures/steve.png";
@@ -11,30 +11,81 @@ var imagePathsCube = [
     "./textures/pz.jpg",
     "./textures/nz.jpg",
 ];
+var solarDemo = false;
+
+const modelProperties = getModelData(new THREE.SphereGeometry(0.5));
+
+let sunDummy = new CS336Model({
+    draw: false,
+    modelProperties: {},
+    materialProperties: {},
+})
+sunDummy.setPosition(0, 0, 0);
+const sun = new CS336Model({
+    draw: true,
+    modelProperties,
+    materialProperties: new CS336Materials("solid"),
+});
+sun.materialProperties.setColor([1.0, 1.0, 0.0, 1.0]);
+sun.loadModelBuffers();
+sun.setPosition(0, 0, 0);
+
+const earthDummy = new CS336Model({
+    draw: false,
+    modelProperties: {},
+    materialProperties: {},
+})
+earthDummy.setPosition(1, 0, 1);
+const earth = new CS336Model({
+    draw: true,
+    modelProperties,
+    materialProperties: new CS336Materials("solid"),
+});
+earth.materialProperties.setColor([0.0, 0.0, 0.5, 1.0]);
+earth.loadModelBuffers();
+earth.setPosition(0, 0, 0);
+earth.setScale(0.5, 0.5, 0.5);
+
+const moon = new CS336Model({
+    draw: true,
+    modelProperties,
+    materialProperties: new CS336Materials("solid"),
+});
+moon.materialProperties.setColor([0.5, 0.5, 0.5, 1.0]);
+moon.loadModelBuffers();
+moon.setPosition(0.5, 0, 0);
+moon.setScale(0.25, 0.25, 0.25);
+
+sunDummy.addChild(sun);
+sunDummy.addChild(earthDummy);
+earthDummy.addChild(earth);
+earthDummy.addChild(moon);
 
 const scene = new CS336Scene({ withAxis: true });
 
 async function main() {
-    gl = getGraphicsContext("theCanvas");
     window.onkeypress = handleKeyPress;
 
-    const sphereGeom = new THREE.CapsuleGeometry(0.75, 0.75, 10, 10);
-    const sphereMat = new CS336Materials("solid");
-    const sphere = new CS336Model({
+    const capsule = new CS336Model({
         draw: true,
-        modelProperties: getModelData(sphereGeom),
-        materialProperties: sphereMat,
+        modelProperties: getModelData(new THREE.CapsuleGeometry(0.75, 0.75, 10, 10)),
+        materialProperties: new CS336Materials("solid"),
     });
-    sphere.materialProperties.setColor([0.5, 0.5, 0.5, 1.0]);
-    sphere.loadModelBuffers();
-    sphere.setPosition(0, 0, 0);
+    capsule.materialProperties.setColor([0.5, 0.5, 0.5, 1.0]);
+    capsule.loadModelBuffers();
+    capsule.setPosition(0, 0, 0);
 
-    scene.addObject(sphere);
+    scene.addObject(capsule);
 
     gl.clearColor(0.9, 0.9, 0.9, 1.0);
     gl.enable(gl.DEPTH_TEST);
 
     const animate = async () => {
+        if( solarDemo ) {
+            sunDummy.rotateY(toRadians(2));
+            earth.rotateY(toRadians(8));
+            earthDummy.rotateY(toRadians(8));
+        }
         await scene.renderScene(gl);
         requestAnimationFrame(animate);
     }
@@ -56,6 +107,7 @@ async function handleKeyPress(event) {
     var ch = getChar(event);
     switch(ch) {
         case '1':
+            solarDemo = false;
             scene.addLight(new CS336Light({
                 x: 0,
                 y: 2.5,
@@ -66,8 +118,10 @@ async function handleKeyPress(event) {
                     0.7, 0.0, 0.0 // specular
                 ])
             }))
+            console.log(scene)
             break;
         case '2':
+            solarDemo = false;
             scene.addLight(new CS336Light({
                 x: -1.25,
                 y: 2.5,
@@ -89,11 +143,41 @@ async function handleKeyPress(event) {
                     ])
             }))
             break;
+        case '3':
+            solarDemo = false;
+            scene.lights = [
+                new CS336Light({
+                    x: 0,
+                    y: 2.5,
+                    z: 0,
+                    lightProperties: new Float32Array([
+                        0.2, 0.2, 0.2, // ambient
+                        0.2, 0.2, 0.2, // diffuse
+                        0.5, 0.5, 0.5 // specular
+                    ])
+                })
+            ];
+            const model = new CS336Model({
+                draw: true,
+                modelProperties: getModelData(new THREE.SphereGeometry(0.75, 32, 32)),
+                materialProperties: new CS336Materials("cube"),
+            });
+            model.materialProperties.setColor([0.25, 0.25, 0.25, 1.0]);
+            model.loadModelBuffers();
+            model.materialProperties.createTextureCube(imagePathsCube);
+
+            model.setPosition(-1.25, 0, 1.25);
+
+            scene.addObject(model);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeTexture.textureAttributes.textureHandler);
+            gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+            break;
         case '4':
+            solarDemo = false;
             const textureMaterial = new CS336Materials("2D");
             textureMaterial.create2DTexture(imagePath3);
-            await textureMaterial.textureAttributes.loadImage();
-            textureMaterial.textureAttributes.createAndLoad();
             const newObject = new CS336Model({
                 draw: true,
                 modelProperties: getModelData(new THREE.TorusKnotGeometry(0.5, 0.2, 32, 8)),
@@ -109,38 +193,8 @@ async function handleKeyPress(event) {
             gl.bindTexture(gl.TEXTURE_2D, texture.textureAttributes.texture);
             gl.generateMipmap(gl.TEXTURE_2D);
             break;
-        case '3':
-            scene.lights = [
-                new CS336Light({
-                    x: 0,
-                    y: 2.5,
-                    z: 0,
-                    lightProperties: new Float32Array([
-                        0.2, 0.2, 0.2, // ambient
-                        0.2, 0.2, 0.2, // diffuse
-                        0.5, 0.5, 0.5 // specular
-                    ])
-                })
-            ];
-            const cubeTexture = new CS336Materials("cube");
-            const model = new CS336Model({
-                draw: true,
-                modelProperties: getModelData(new THREE.SphereGeometry(0.75, 32, 32)),
-                materialProperties: cubeTexture,
-            });
-            model.materialProperties.setColor([0.25, 0.25, 0.25, 1.0]);
-            model.loadModelBuffers();
-            model.materialProperties.createTextureCube(imagePathsCube);
-
-            model.setPosition(-1.25, 0, 1.25);
-
-            scene.addObject(model);
-
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeTexture.textureAttributes.textureHandler);
-            gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-            break;
         case '5':
+            solarDemo = false;
             scene.addLight(new CS336Light({
                 x: 1.25,
                 y: -2.5,
@@ -149,8 +203,16 @@ async function handleKeyPress(event) {
                     0.2, 0.2, 0.2, // ambient
                     0.0, 0.0, 0.7, // diffuse
                     0.0, 0.0, 0.7 // specular
-                    ])
+                ])
             }))
+            break;
+        case '6':
+            solarDemo = true;
+            scene.lights = [];
+            scene.objects = [];
+            scene.addObject(sunDummy);
+            console.log(sunDummy.children)
+            break;
         default: scene.camera.keyControl(ch);
     }
 }

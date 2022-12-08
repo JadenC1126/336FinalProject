@@ -167,9 +167,9 @@ async function handleKeyPress(event) {
             model.setPosition(-1.25, 0, 1.25);
 
             scene.addObject(model);
-
+            console.log(model.materialProperties);
             gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeTexture.textureAttributes.textureHandler);
+            gl.bindTexture(gl.TEXTURE_CUBE_MAP, model.materialProperties.textureAttributes.textureHandler);
             gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
             break;
         case '4':
@@ -188,7 +188,7 @@ async function handleKeyPress(event) {
             scene.addObject(newObject);
 
             gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, texture.textureAttributes.texture);
+            gl.bindTexture(gl.TEXTURE_2D, newObject.materialProperties.textureAttributes.textureHandler);
             gl.generateMipmap(gl.TEXTURE_2D);
             break;
         case '5':

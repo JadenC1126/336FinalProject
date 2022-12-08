@@ -239,7 +239,7 @@ CS336Model.prototype.createVertexShader = function(lightCount) {
     return `
         precision mediump float;
         // declare light count if there are any lights in the scene 
-        ${lightCount > 0 ? `#define MAX_LIGHTS ${lightCount};` : ''}
+        ${lightCount > 0 ? `#define MAX_LIGHTS ${lightCount}` : ''}
         uniform mat4 model;
         uniform mat4 view;
         uniform mat4 projection;

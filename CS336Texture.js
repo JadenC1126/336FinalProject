@@ -1,3 +1,8 @@
+/*
+ * This class holds all texture information inlcuding image path(s),
+ * methods to create and load the texture information into buffers,
+ * the texture coordinates or vertices, and the texture handler it creates. 
+*/
 class CS336Texture { // THREE materials
     images = null;
     textureHandler = null;
@@ -27,12 +32,9 @@ class CS336Texture { // THREE materials
         }
     }
 
-    get uniformTextureDeclaration(){
-        return "uniform " + this.textureType + " sampler;";
-    }
-
     async loadImage(){
-        if (this.loadedImage === false){
+        // only load the image once
+        if (!this.loadedImage){
             if (this.type === "2D"){
                 this.images = await loadImagePromise(this.imagePaths);
                 this.loadedImage = true;
@@ -49,6 +51,7 @@ class CS336Texture { // THREE materials
     }
 
     async createAndLoad(){
+        // only load the buffer once 
         if (!this.loadedBuffer){
             if (this.type === "2D"){
                 this.textureHandler = createAndLoadTexture(this.images);

@@ -1,12 +1,13 @@
-/*
+/**
  * This class extends CS336Object to include all of the movement 
- * functionality. 
- * @param draw: boolean for if you want the object to be drawn in the 
+ * functionality.
+ * @param {Object} options optional, or all elements required 
+ * @param {Boolean} options.draw: boolean for if you want the object to be drawn in the 
  * scene, or if you want it to be a dummy object.
- * @param modelProperties: add model properties to create any type of model 
- * @param materialPropeties: specify what type of lights, how they
+ * @param {Object} options.modelProperties: add model properties to create any type of model 
+ * @param {CS336Materials} options.materialPropeties: specify what type of lights, how they
  * should interact with the model 
-*/ 
+ */ 
 var CS336Model = function({
     draw,
     modelProperties,
@@ -30,6 +31,10 @@ var CS336Model = function({
 
 CS336Model.prototype = Object.create(CS336Object.prototype);
 
+/**
+ * Creates WebGL buffers for model vertices, vertex normals,
+ * texture coordinates, and colors.
+ */
 CS336Model.prototype.loadModelBuffers = function() {
     // if there is no model, dont continue trying to load 
     if( !this.modelProperties ) {
@@ -88,6 +93,14 @@ CS336Model.prototype.loadModelBuffers = function() {
     }
 }
 
+/**
+ * Checks if this model needs to be rendered, and if so, calls renderSelf.
+ * Also calls render on all children.
+ * @param {WebGLRenderingContext} gl 
+ * @param {THREE.Matrix4} worldMatrix render model w.r.t. this matrix
+ * @param {CS336Light[]} lights 
+ * @param {Camera} camera 
+ */
 CS336Model.prototype.render = async function(gl, worldMatrix, lights, camera) {
     const world = new THREE.Matrix4().copy(worldMatrix).multiply(this.getMatrix());
 
@@ -99,6 +112,14 @@ CS336Model.prototype.render = async function(gl, worldMatrix, lights, camera) {
     }
 }
 
+/**
+ * Renders the model using the given world matrix, lights, and camera.
+ * Regenerates shaders and textures as needed/when applicable.
+ * @param {WebGLRenderingContext} gl 
+ * @param {THREE.Matrix4} worldMatrix 
+ * @param {CS336Light[]} lights 
+ * @param {Camera} camera 
+ */
 CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera) {
     // Pull or load texture if applicable
 
@@ -253,11 +274,12 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     gl.useProgram(null);
 }
 
-/*
- * Method that creates the vertex shader on the fly.
- * It declares all attributes and varying variables
- * needed to create the texture or solid color. 
-*/
+/**
+ * Fills in a template vertex shader string with the appropriate number of lights, and
+ * handles solid coloring, textures, and light adjustment.
+ * @param {Number} lightCount 
+ * @returns vertex shader string
+ */
 CS336Model.prototype.createVertexShader = function(lightCount) {
     return `
         precision mediump float;
@@ -316,13 +338,12 @@ CS336Model.prototype.createVertexShader = function(lightCount) {
     `;
 }
 
-/*
- * Method that creates the fragment shader on the fly.
- * It takes into account the number of lights in a scene 
- * and recalculates the light only when the number of 
- * lights changes in a scene, or the ambient, diffuse or 
- * specular changes.
-*/
+/**
+ * Fills in a template fragment shader string with the appropriate number of lights, and
+ * handles solid coloring, textures, and light adjustment.
+ * @param {Number} lightCount 
+ * @returns fragment shader string
+ */
 CS336Model.prototype.createFragmentShader = function(lightCount) {
     return `
         // define the number of lights as a constant

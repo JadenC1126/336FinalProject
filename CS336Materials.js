@@ -1,4 +1,8 @@
-
+/**
+ * Represents a material for a 3D object
+ * Can be solid, 2D, or 3D.
+ * Includes surface and texture attributes.
+ */
 class CS336Materials{
     type = null;
 
@@ -21,7 +25,11 @@ class CS336Materials{
 
     adjustSurface = false;
 
-    // type can be texture cube, texture 2D or solid 
+    /**
+     * Creates a new CS336Materials based on type, as well a respective
+     * texture. Properties set here are used by models when rendering.
+     * @param {String} type solid, 2D, or cube
+     */
     constructor(type){
         this.type = type;
         if (type === "2D"){
@@ -36,14 +44,27 @@ class CS336Materials{
         }
     }
 
+    /**
+     * Sets the surface color of the material.
+     * @param {Float[]} newColor color given as [r, g, b, a]
+     */
     setColor(newColor){
         this.color = newColor;
     }
 
+    /**
+     * Sets the surface attributes of the material.
+     * @param {Float32Array} newSurfaceAttributes given as 9 element array of floats
+     * representing the ambient, diffuse, and specular surface attributes
+     */
     setSurfaceAttributes(newSurfaceAttributes){
         this.surfaceAttributes = newSurfaceAttributes;
     }
 
+    /**
+     * Creates a 2D texture and loads it into a buffer.
+     * @param {String} filePath path to the image file
+     */
     async create2DTexture(filePath){
         this.textureAttributes = new CS336Texture("2D");
         this.textureAttributes.imagePaths = filePath;
@@ -51,6 +72,11 @@ class CS336Materials{
         await this.textureAttributes.createAndLoad();
     }
 
+    /**
+     * Creates a cube texture and loads it into a buffer.
+     * @param {String[]} filePaths paths to the image files
+     * in the order of +x, -x, +y, -y, +z, -z
+     */
     async createTextureCube(filePaths){
         this.textureAttributes = new CS336Texture("cube");
         this.textureAttributes.imagePaths = filePaths;

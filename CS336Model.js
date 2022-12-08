@@ -181,10 +181,12 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     loc = gl.getUniformLocation(shaderProgram, "normalMatrix");
     gl.uniformMatrix3fv(loc, false, makeNormalMatrixElements(worldMatrix, view));
 
+    // Pass light position of every light to the shader program
     lights.forEach((light, i) => {
         loc = gl.getUniformLocation(shaderProgram, `lightPosition[${i}]`);
         gl.uniform4f(loc, light.position.x, light.position.y, light.position.z, 1.0);
     })
+    // Pass light properties (ambient, specular, diffuse) of every light to the shader program
     lights.forEach((light, i) => {
         loc = gl.getUniformLocation(shaderProgram, `lightProperties[${i}]`);
         gl.uniformMatrix3fv(loc, false, light.getLightProperties());
@@ -252,6 +254,8 @@ CS336Model.prototype.createVertexShader = function(lightCount) {
         ${lightCount > 0 ? 'uniform vec4 lightPosition[MAX_LIGHTS];' : ''}
         attribute vec4 a_Position;
         attribute vec3 a_Normal;
+
+        // only track light directions if present
         ${lightCount > 0 ? 'varying vec3 fL[MAX_LIGHTS];' : ''}
         varying vec3 fN;
         varying vec3 fV;
@@ -275,6 +279,9 @@ CS336Model.prototype.createVertexShader = function(lightCount) {
 
             // set the texture vector to the current vertex position if creating a texture cube
             ${this.materialProperties.textureCube ? 'fTexVector = a_Position.xyz;':''}
+
+            // Determine what the light directions are if they are
+            // present in a scene
             ${lightCount > 0 ?
                 `
                     for( int i = 0; i < MAX_LIGHTS; i++ ) {
@@ -305,18 +312,21 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
         // account for adjusting the surface of the model if set to true
         ${this.materialProperties.adjustSurface ? 'uniform mat3 materialProperties;' : ''}
         
-        ${this.materialProperties.texture_2d ? 'uniform sampler2D u_Sampler;' : ''}
-        ${this.materialProperties.texture_cube ? 'uniform samplerCube u_Sampler;' : ''}
+        ${this.materialProperties.texture2D ? 'uniform sampler2D u_Sampler;' : ''}
+        ${this.materialProperties.textureCube ? 'uniform samplerCube u_Sampler;' : ''}
         ${this.materialProperties.solid ? 'varying vec4 color;': ''}
         
+        // Include light directions if present
         ${lightCount > 0 ? 'varying vec3 fL[MAX_LIGHTS];' : ''}
         varying vec3 fN;
         varying vec3 fV;
         // declares the varying variable for the type of texture you are trying to add to the model, if any 
-        ${this.materialProperties.texture_2d ? 'varying vec2 fTexCoord;': ''}
-        ${this.materialProperties.texture_cube ? 'varying vec3 fTexVector;': ''}
+        ${this.materialProperties.texture2D ? 'varying vec2 fTexCoord;': ''}
+        ${this.materialProperties.textureCube ? 'varying vec3 fTexVector;': ''}
 
-        // calculate the light contributions depending on the light properties 
+        // Helper to calculate light properties using each light's direction,
+        // light properties, normal and view direction. Also bring object material
+        // properties into the calculation.
         vec4 getLightContribution(vec3 fL, mat3 lightProps, vec3 N, vec3 V) {
             vec3 L = normalize(fL);
             vec3 R = reflect(-L, N);
@@ -333,10 +343,11 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
             vec3 V = normalize(fV);
             vec4 tmpColor = ${
                 this.materialProperties.solid ? 'color;' :
-                this.materialProperties.texture_2d ? 'texture2D(u_Sampler, fTexCoord);' :
-                this.materialProperties.texture_cube ?  'textureCube(u_Sampler, fTexVector);' :
+                this.materialProperties.texture2D ? 'texture2D(u_Sampler, fTexCoord);' :
+                this.materialProperties.textureCube ?  'textureCube(u_Sampler, fTexVector);' :
                 'vec4(0.0, 0.0, 0.0, 1.0);'
             }
+            // If the current scene has lights, light contributions needs to be determined
             ${lightCount > 0 ?
                 `for( int i = 0; i < MAX_LIGHTS; i++ ) {
                     tmpColor += getLightContribution(fL[i], lightProperties[i], N, V);

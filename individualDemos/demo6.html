@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Demo 6</title>
+    </head>
+
+    <body>
+        <canvas id="theCanvas" width="600" height="400">
+            Please use a browser that supports "canvas"
+        </canvas>
+
+        <p>
+            Demo 6: Solar System
+        </p>
+
+        <p>
+            Keyboard controls:
+            <ul style="list-style:none;">
+                <li>w,a,s,d - move forward, left, backward, right</li>
+                <li>r,f - move up, down</li>
+                <li>i,j,k,l - look up, left, down, right</li>
+                <li>O - look at origin</li>
+                <li>p - place camera at origin</li>
+                <li>S,W - grow, shrink fov</li>
+                <li>I,J,K,L - orbit up, left, down, right</li>
+            </ul>
+        </p>
+
+
+        <script src="../three.js"></script>
+        <script src="../util/cs336util.js"></script>
+        <script src="../CS336Object.js"></script>
+        <script src="../Camera.js"></script>
+        <script src="../CS336Texture.js"></script>
+        <script src="../CS336Scene.js"></script>
+        <script src="../CS336Light.js"></script>
+        <script src="../CS336Model.js"></script>
+        <script src="../CS336Materials.js"></script>
+        <script src="./demo6.js"></script>
+        <script>window.onload = main</script>
+    </body>
+</html>

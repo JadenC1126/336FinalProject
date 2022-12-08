@@ -162,34 +162,31 @@ async function handleKeyPress(event) {
             });
             model.materialProperties.setColor([0.25, 0.25, 0.25, 1.0]);
             model.loadModelBuffers();
-            model.materialProperties.createTextureCube(imagePathsCube);
+            await model.materialProperties.createTextureCube(imagePathsCube);
 
             model.setPosition(-1.25, 0, 1.25);
-
             scene.addObject(model);
-            console.log(model.materialProperties);
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_CUBE_MAP, model.materialProperties.textureAttributes.textureHandler);
-            gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+
             break;
         case '4':
             solarDemo = false;
-            const textureMaterial = new CS336Materials("2D");
-            textureMaterial.create2DTexture(imagePath3);
+            // const textureMaterial = new CS336Materials("2D");
+            // await textureMaterial.create2DTexture(imagePath3);
             const newObject = new CS336Model({
                 draw: true,
                 modelProperties: getModelData(new THREE.TorusKnotGeometry(0.5, 0.2, 32, 8)),
-                materialProperties: textureMaterial,
+                materialProperties: new CS336Materials("2D"),
             });
-            newObject.materialProperties.setColor([0.25, 0.25, 0.25, 1.0]);
+            // newObject.materialProperties.setColor([0.25, 0.25, 0.25, 1.0]);
             newObject.loadModelBuffers();
+            await newObject.materialProperties.create2DTexture(imagePath3);
             newObject.setPosition(1.25, 0, -1.25);
 
             scene.addObject(newObject);
 
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, newObject.materialProperties.textureAttributes.textureHandler);
-            gl.generateMipmap(gl.TEXTURE_2D);
+            // gl.activeTexture(gl.TEXTURE0);
+            // gl.bindTexture(gl.TEXTURE_2D, newObject.materialProperties.textureAttributes.textureHandler);
+            // gl.generateMipmap(gl.TEXTURE_2D);
             break;
         case '5':
             solarDemo = false;

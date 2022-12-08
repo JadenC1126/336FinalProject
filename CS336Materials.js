@@ -44,14 +44,18 @@ class CS336Materials{
         this.surfaceAttributes = newSurfaceAttributes;
     }
 
-    create2DTexture(filePath){
+    async create2DTexture(filePath){
         this.textureAttributes = new CS336Texture("2D");
         this.textureAttributes.imagePaths = filePath;
+        await this.textureAttributes.loadImage();
+        await this.textureAttributes.createAndLoad();
     }
 
-    createTextureCube(filePaths){
+    async createTextureCube(filePaths){
         this.textureAttributes = new CS336Texture("cube");
         this.textureAttributes.imagePaths = filePaths;
+        await this.textureAttributes.loadImage();
+        await this.textureAttributes.createAndLoad();
     }
 
 }

@@ -7,10 +7,7 @@
  * has a list of child objects and a hook, drawFunction, for rendering the
  * object and then recursively rendering all the child objects.
  */
-// solid color shaders
-// add material properties
-// cut down on details in the objects
-var CS336Object = function() // default values
+var CS336Object = function() 
  {
    // children of this object
    this.children = [];

@@ -54,16 +54,16 @@ class CS336Texture { // THREE materials
         // only load the buffer once 
         if (!this.loadedBuffer){
             if (this.type === "2D"){
-                this.textureHandler = createAndLoadTexture(this.images);
+                this.textureHandler = await createAndLoadTexture(this.images);
             }
             else {
-                this.textureHandler = createAndLoadCubeTexture(this.images);
+                this.textureHandler = await createAndLoadCubeTexture(this.images);
             }
         }
         this.loadedBuffer = true;
     }
 
-    get textureHandle(){
+    getTextureHandle(){
         return this.textureHandler;
     }
     

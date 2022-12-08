@@ -1,9 +1,12 @@
+// Defines a scene - a container for objects, lights, and a camera
 class CS336Scene {
     camera = null;
-    objects = [];
-    lights = [];
-    withAxis = false;
+    objects = []; // Array of CS336Model
+    lights = []; // Array of CS336Light
+    withAxis = false; // Draw the axis?
     axisShader = null;
+
+    // Axis
     axisVertices = new Float32Array([
         0.0, 0.0, 0.0,
         1.5, 0.0, 0.0,
@@ -12,6 +15,8 @@ class CS336Scene {
         0.0, 0.0, 0.0,
         0.0, 0.0, 1.5,
     ]);
+
+    // Axis colors
     axisColors = new Float32Array([
         1.0, 0.0, 0.0, 1.0,
         1.0, 0.0, 0.0, 1.0,
@@ -23,6 +28,7 @@ class CS336Scene {
     vAxisBuffer = null;
     cAxisBuffer = null;
 
+    // Create with default camera options
     constructor({ withAxis } = { withAxis: false }) {
         this.camera = new Camera(30, 1.5);
         this.camera.setPosition(5,2,5);
@@ -30,18 +36,23 @@ class CS336Scene {
         this.withAxis = withAxis;
     }
 
+    // Get the scene's camera
     get camera() {
         return this.camera;
     }
 
+    // Add a new object to the scene
     addObject(object) {
         this.objects.push(object);
     }
 
+    // Add a new light to the scene
     addLight(light) {
         this.lights.push(light);
     }
 
+    // Render the scene, optionally with axis,
+    // then render each of the objects
     renderScene(gl) {
         gl.clearColor(0.0, 0.8, 0.8, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -51,6 +62,7 @@ class CS336Scene {
         })
     }
 
+    // Helper for drawing the axis
     drawAxis(gl) {
         if( this.axisShader === null ) {
             const vShader = `

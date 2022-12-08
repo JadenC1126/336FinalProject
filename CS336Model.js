@@ -54,9 +54,7 @@ CS336Model.prototype.loadModelBuffers = function() {
     let texCoordBuffer = null;
     let colorBuffer = null;
 
-    if( this.materialProperties.texture_2d || this.materialProperties.texture_cube ) {
-        console.log("---------");
-        console.log(texCoords1);
+    if( this.materialProperties.texture2D || this.materialProperties.textureCube ) {
         texCoordBuffer = createAndLoadBuffer(new Float32Array(texCoords1));
     }
     if (this.materialProperties.solid){
@@ -78,14 +76,14 @@ CS336Model.prototype.render = async function(gl, worldMatrix, lights, camera) {
     if( this.draw ) await this.renderSelf(gl, world, lights, camera);
     
     for( let i = 0; i < this.children.length; i++ ) {
-        await this.children[i].render(gl, world, lights, camera);
+        this.children[i].render(gl, world, lights, camera);
     }
 }
 
 CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera) {
     // Pull or load texture if applicable
 
-    if ((this.materialProperties.texture_2d || this.materialProperties.texture_cube) && !this.materialProperties.textureAttributes.loaded_image){
+    if ((this.materialProperties.texture2D || this.materialProperties.textureCube) && !this.materialProperties.textureAttributes.loadedImage){
         await this.materialProperties.textureAttributes.loadImage();
     }
 
@@ -112,7 +110,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     }
     let texCoordIndex = null;
     let colorIndex = null;
-    if( this.materialProperties.texture_2d) {
+    if( this.materialProperties.texture2D) {
         texCoordIndex = gl.getAttribLocation(shaderProgram, "a_TexCoord");
         if( texCoordIndex < 0 ) {
             console.log("Failed to get the storage location of a_TexCoord");
@@ -150,8 +148,8 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         gl.vertexAttribPointer(colorIndex, 4, gl.FLOAT, false, 0, 0);
     }
 
-    if ( this.materialProperties.texture_2d || this.materialProperties.texture_cube ){
-        if( !this.materialProperties.textureAttributes.loaded_buffer )
+    if ( this.materialProperties.texture2D || this.materialProperties.textureCube ){
+        if( !this.materialProperties.textureAttributes.loadedBuffer )
             await this.materialProperties.textureAttributes.createAndLoad();
         textureHandle = this.materialProperties.textureAttributes.textureHandler;
     }
@@ -182,7 +180,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         gl.uniformMatrix3fv(loc, false, light.getLightProperties());
     })
 
-    if( this.materialProperties.adjust_surface ) {
+    if( this.materialProperties.adjustSurface ) {
         const surfaceAttributes = this.materialProperties.surfaceAttributes;
         if( surfaceAttributes ) {
             loc = gl.getUniformLocation(shaderProgram, "materialProperties");
@@ -190,14 +188,14 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         }
     }
 
-    if (this.materialProperties.texture_2d){
+    if (this.materialProperties.texture2D){
         var textureUnit = 1;
         gl.activeTexture(gl.TEXTURE0 + textureUnit);
         gl.bindTexture(gl.TEXTURE_2D, textureHandle);
         let loc2 = gl.getUniformLocation(shaderProgram, "u_Sampler");
         gl.uniform1i(loc2, textureUnit);
     }
-    else if (this.materialProperties.texture_cube){
+    else if (this.materialProperties.textureCube){
         var textureUnit = 1;
         gl.activeTexture(gl.TEXTURE0 + textureUnit);
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, textureHandle);
@@ -222,32 +220,43 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
 CS336Model.prototype.createVertexShader = function(lightCount) {
     return `
         precision mediump float;
+        // declare light count if there are any lights in the scene 
         ${lightCount > 0 ? `#define MAX_LIGHTS ${lightCount}` : ''}
         uniform mat4 model;
         uniform mat4 view;
         uniform mat4 projection;
         uniform mat3 normalMatrix;
+        // declare attribute and varying variable for solid color, if applicable 
         ${this.materialProperties.solid ? 'attribute vec4 a_Color;': ''}
         ${this.materialProperties.solid ? 'varying vec4 color;': ''}
 
+        // declare light position with the number of lights, if applicable 
         ${lightCount > 0 ? 'uniform vec4 lightPosition[MAX_LIGHTS];' : ''}
         attribute vec4 a_Position;
         attribute vec3 a_Normal;
         ${lightCount > 0 ? 'varying vec3 fL[MAX_LIGHTS];' : ''}
         varying vec3 fN;
         varying vec3 fV;
+        // declare attribute and varying variable for 2D texture 
+        ${this.materialProperties.texture2D ? 'attribute vec2 a_TexCoord;':''}
+        ${this.materialProperties.texture2D ? 'varying vec2 fTexCoord;':''}
 
-        ${this.materialProperties.texture_2d ? 'attribute vec2 a_TexCoord;':''}
-        ${this.materialProperties.texture_2d ? 'varying vec2 fTexCoord;':''}
-        ${this.materialProperties.texture_cube ? 'varying vec3 fTexVector;':''}
+        // declare varying variable for the texture cube 
+        ${this.materialProperties.textureCube ? 'varying vec3 fTexVector;':''}
 
         void main() {
             vec4 posEye = view * model * a_Position;
             fN = normalMatrix * a_Normal;
             fV = normalize(-(posEye).xyz);
+
+            // set the solid color to the color passed into the model (default is red)
             ${this.materialProperties.solid ? 'color = a_Color;': ''}
-            ${this.materialProperties.texture_2d ? 'fTexCoord = a_TexCoord;':''}
-            ${this.materialProperties.texture_cube ? 'fTexVector = a_Position.xyz;':''}
+
+            // set the 2D texture coord to the declared attribute, if applicable 
+            ${this.materialProperties.texture2D ? 'fTexCoord = a_TexCoord;':''}
+
+            // set the texture vector to the current vertex position if creating a texture cube
+            ${this.materialProperties.textureCube ? 'fTexVector = a_Position.xyz;':''}
             ${lightCount > 0 ?
                 `
                     for( int i = 0; i < MAX_LIGHTS; i++ ) {

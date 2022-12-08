@@ -1,11 +1,11 @@
 class CS336Texture { // THREE materials
     images = null;
     textureHandler = null;
-    texture_type = null;
-    texture_loader = null;
+    textureType = null;
+    textureLoader = null;
     imagePaths = null;
-    loaded_image = false;
-    loaded_buffer = false;
+    loadedImage = false;
+    loadedBuffer = false;
 
     vertices = null;
     // solid vs not solid
@@ -16,26 +16,26 @@ class CS336Texture { // THREE materials
         this.type = type;
         this.vertices = vertices;
         if (this.type === "2D"){
-            this.texture_type = "sampler2D";
-            this.texture_loader = "texture2D";
+            this.textureType = "sampler2D";
+            this.textureLoader = "texture2D";
             this.imagePaths = "";
         }
         else {
-            this.texture_type = "samplerCube";
-            this.texture_loader = "textureCube";
+            this.textureType = "samplerCube";
+            this.textureLoader = "textureCube";
             this.imagePaths = [];
         }
     }
 
     get uniformTextureDeclaration(){
-        return "uniform " + this.texture_type + " sampler;";
+        return "uniform " + this.textureType + " sampler;";
     }
 
     async loadImage(){
-        if (this.loaded_image === false){
+        if (this.loadedImage === false){
             if (this.type === "2D"){
                 this.images = await loadImagePromise(this.imagePaths);
-                this.loaded_image = true;
+                this.loadedImage = true;
             }
             else {
                 this.images = [];
@@ -45,11 +45,11 @@ class CS336Texture { // THREE materials
                 }
             }
         }
-        this.loaded_image = true;
+        this.loadedImage = true;
     }
 
     async createAndLoad(){
-        if (!this.loaded_buffer){
+        if (!this.loadedBuffer){
             if (this.type === "2D"){
                 this.textureHandler = createAndLoadTexture(this.images);
             }
@@ -57,7 +57,7 @@ class CS336Texture { // THREE materials
                 this.textureHandler = createAndLoadCubeTexture(this.images);
             }
         }
-        this.loaded_buffer = true;
+        this.loadedBuffer = true;
     }
 
     get textureHandle(){

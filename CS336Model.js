@@ -32,7 +32,8 @@ CS336Model.prototype.loadModelBuffers = function() {
     } = this.modelProperties;
 
     let color = this.materialProperties.color;
-    
+    console.log("here");
+    console.log(this.materialProperties);
     let colors = [];
     for( let i = 0; i < numVertices; i++ ) {
         colors.push(color[0], color[1], color[2], color[3]);
@@ -60,7 +61,7 @@ CS336Model.prototype.loadModelBuffers = function() {
     if (this.materialProperties.solid){
         colorBuffer = createAndLoadBuffer(new Float32Array(colors));
     }
-
+    console.log("there");
     this.modelProperties.buffers = {
         vertexBuffer,
         normalBuffer,
@@ -125,11 +126,13 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         }
     }
 
+    // enable all vertex attributes that will be needed  
     gl.enableVertexAttribArray(positionIndex);
     gl.enableVertexAttribArray(normalIndex);
     if( texCoordIndex >= 0 ) gl.enableVertexAttribArray(texCoordIndex);
     if ( colorIndex >= 0 ) gl.enableVertexAttribArray(colorIndex);
 
+    // grab the buffers that were created and filled with data in the loadModelBuffers() method
     const {
         vertexBuffer,
         normalBuffer,
@@ -139,6 +142,7 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
     } = this.modelProperties.buffers;
 
     let textureHandle = null;
+    // bind and instantiate the atteibutes that are being declared in the shader
     if( texCoordIndex >= 0 ) {
         gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
         gl.vertexAttribPointer(texCoordIndex, 2, gl.FLOAT, false, 0, 0);
@@ -148,20 +152,26 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         gl.vertexAttribPointer(colorIndex, 4, gl.FLOAT, false, 0, 0);
     }
 
+    // create and load the texture material if the materials object has a texture
     if ( this.materialProperties.texture2D || this.materialProperties.textureCube ){
         if( !this.materialProperties.textureAttributes.loadedBuffer )
             await this.materialProperties.textureAttributes.createAndLoad();
+        // grab the texture handle from the material's texture once the texture has been created and loaded 
         textureHandle = this.materialProperties.textureAttributes.textureHandler;
     }
 
+    // "bind" the buffer as the current array buffer
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.vertexAttribPointer(positionIndex, 3, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
     gl.vertexAttribPointer(normalIndex, 3, gl.FLOAT, false, 0, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
+    
+    // get the projection from the camera object
     const projection = camera.getProjection();
+    // get the view from the camera object 
     const view = camera.getView();
+
     let loc = gl.getUniformLocation(shaderProgram, "model");
     gl.uniformMatrix4fv(loc, false, worldMatrix.elements);
     loc = gl.getUniformLocation(shaderProgram, "view");
@@ -188,23 +198,31 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
         }
     }
 
+    // instantiate the 2D texture 
     if (this.materialProperties.texture2D){
         var textureUnit = 1;
         gl.activeTexture(gl.TEXTURE0 + textureUnit);
+        // bind the texture to the texture handle created by the models's texture 
         gl.bindTexture(gl.TEXTURE_2D, textureHandle);
+        // grab the uniform location from the shader and set it 
         let loc2 = gl.getUniformLocation(shaderProgram, "u_Sampler");
         gl.uniform1i(loc2, textureUnit);
     }
+    // instantiate the texture cube
     else if (this.materialProperties.textureCube){
         var textureUnit = 1;
         gl.activeTexture(gl.TEXTURE0 + textureUnit);
+        // bind the texture to the texture handle created by the model's texture 
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, textureHandle);
+        // grab the uniform location from the shader and set it
         var loc2 = gl.getUniformLocation(shaderProgram, "u_Sampler");
         gl.uniform1i(loc2, textureUnit);
     }
 
+    // draw the current model
     gl.drawArrays(gl.TRIANGLES, 0, this.modelProperties.numVertices);
 
+    // disable all vertex attributes that were enabled 
     gl.disableVertexAttribArray(positionIndex);
     gl.disableVertexAttribArray(normalIndex);
     if( texCoordIndex >= 0 ) gl.disableVertexAttribArray(texCoordIndex);
@@ -221,7 +239,7 @@ CS336Model.prototype.createVertexShader = function(lightCount) {
     return `
         precision mediump float;
         // declare light count if there are any lights in the scene 
-        ${lightCount > 0 ? `#define MAX_LIGHTS ${lightCount}` : ''}
+        ${lightCount > 0 ? `#define MAX_LIGHTS ${lightCount};` : ''}
         uniform mat4 model;
         uniform mat4 view;
         uniform mat4 projection;
@@ -285,19 +303,18 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
         // define the light properties with the light count if there are lights in the scene
         ${lightCount > 0 ? 'uniform mat3 lightProperties[MAX_LIGHTS];' : ''}
         // account for adjusting the surface of the model if set to true
-        ${this.materialProperties && this.materialProperties.adjust_surface ? 'uniform mat3 materialProperties;' : ''}
+        ${this.materialProperties.adjustSurface ? 'uniform mat3 materialProperties;' : ''}
         
-        // 
-        ${this.materialProperties && this.materialProperties.texture_2d ? 'uniform sampler2D u_Sampler;' : ''}
-        ${this.materialProperties && this.materialProperties.texture_cube ? 'uniform samplerCube u_Sampler;' : ''}
+        ${this.materialProperties.texture_2d ? 'uniform sampler2D u_Sampler;' : ''}
+        ${this.materialProperties.texture_cube ? 'uniform samplerCube u_Sampler;' : ''}
         ${this.materialProperties.solid ? 'varying vec4 color;': ''}
         
         ${lightCount > 0 ? 'varying vec3 fL[MAX_LIGHTS];' : ''}
         varying vec3 fN;
         varying vec3 fV;
         // declares the varying variable for the type of texture you are trying to add to the model, if any 
-        ${this.materialProperties && this.materialProperties.texture_2d ? 'varying vec2 fTexCoord;': ''}
-        ${this.materialProperties && this.materialProperties.texture_cube ? 'varying vec3 fTexVector;': ''}
+        ${this.materialProperties.texture_2d ? 'varying vec2 fTexCoord;': ''}
+        ${this.materialProperties.texture_cube ? 'varying vec3 fTexVector;': ''}
 
         // calculate the light contributions depending on the light properties 
         vec4 getLightContribution(vec3 fL, mat3 lightProps, vec3 N, vec3 V) {
@@ -315,9 +332,9 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
             vec3 N = normalize(fN);
             vec3 V = normalize(fV);
             vec4 tmpColor = ${
-                this.materialProperties && this.materialProperties.solid ? 'color;' :
-                this.materialProperties && this.materialProperties.texture_2d ? 'texture2D(u_Sampler, fTexCoord);' :
-                this.materialProperties && this.materialProperties.texture_cube ?  'textureCube(u_Sampler, fTexVector);' :
+                this.materialProperties.solid ? 'color;' :
+                this.materialProperties.texture_2d ? 'texture2D(u_Sampler, fTexCoord);' :
+                this.materialProperties.texture_cube ?  'textureCube(u_Sampler, fTexVector);' :
                 'vec4(0.0, 0.0, 0.0, 1.0);'
             }
             ${lightCount > 0 ?

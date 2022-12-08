@@ -13,8 +13,6 @@ var imagePathsCube = [
 ];
 var solarDemo = false;
 
-const modelProperties = getModelData(new THREE.SphereGeometry(0.5));
-
 let sunDummy = new CS336Model({
     draw: false,
     modelProperties: {},
@@ -23,7 +21,7 @@ let sunDummy = new CS336Model({
 sunDummy.setPosition(0, 0, 0);
 const sun = new CS336Model({
     draw: true,
-    modelProperties,
+    modelProperties: getModelData(new THREE.SphereGeometry(0.5)),
     materialProperties: new CS336Materials("solid"),
 });
 sun.materialProperties.setColor([1.0, 1.0, 0.0, 1.0]);
@@ -38,7 +36,7 @@ const earthDummy = new CS336Model({
 earthDummy.setPosition(1, 0, 1);
 const earth = new CS336Model({
     draw: true,
-    modelProperties,
+    modelProperties: getModelData(new THREE.SphereGeometry(0.5)),
     materialProperties: new CS336Materials("solid"),
 });
 earth.materialProperties.setColor([0.0, 0.0, 0.5, 1.0]);
@@ -48,7 +46,7 @@ earth.setScale(0.5, 0.5, 0.5);
 
 const moon = new CS336Model({
     draw: true,
-    modelProperties,
+    modelProperties: getModelData(new THREE.SphereGeometry(0.5)),
     materialProperties: new CS336Materials("solid"),
 });
 moon.materialProperties.setColor([0.5, 0.5, 0.5, 1.0]);

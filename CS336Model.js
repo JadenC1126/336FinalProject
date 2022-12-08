@@ -37,15 +37,7 @@ CS336Model.prototype.loadModelBuffers = function() {
     for( let i = 0; i < numVertices; i++ ) {
         colors.push(color[0], color[1], color[2], color[3]);
     }
-    // var texCoords1 = new Float32Array([
-    //     0.0, 0.0,
-    //     1.0, 0.0,
-    //     1.0, 1.0,
-    //     0.0, 0.0,
-    //     1.0, 1.0,
-    //     0.0, 1.0,
-    //     ]);
-        let texCoords1 = [];
+    let texCoords1 = [];
     for (let i = 0; i < 86402/10; i++){
         texCoords1.push(
             0.0, 0.0,
@@ -222,7 +214,11 @@ CS336Model.prototype.renderSelf = async function(gl, worldMatrix, lights, camera
 
     gl.useProgram(null);
 }
-
+/*
+ * Method that creates the vertex shader on the fly.
+ * It declares all attributes and varying variables
+ * needed to create the texture or solid color. 
+*/
 CS336Model.prototype.createVertexShader = function(lightCount) {
     return `
         precision mediump float;
@@ -265,12 +261,24 @@ CS336Model.prototype.createVertexShader = function(lightCount) {
     `;
 }
 
+/*
+ * Method that creates the fragment shader on the fly.
+ * It takes into account the number of lights in a scene 
+ * and recalculates the light only when the number of 
+ * lights changes in a scene, or the ambient, diffuse or 
+ * specular changes.
+*/
 CS336Model.prototype.createFragmentShader = function(lightCount) {
     return `
+        // define the number of lights as a constant
         ${lightCount > 0 ? `#define MAX_LIGHTS ${lightCount}` : ''}
         precision mediump float;
+        // define the light properties with the light count if there are lights in the scene
         ${lightCount > 0 ? 'uniform mat3 lightProperties[MAX_LIGHTS];' : ''}
+        // account for adjusting the surface of the model if set to true
         ${this.materialProperties && this.materialProperties.adjust_surface ? 'uniform mat3 materialProperties;' : ''}
+        
+        // 
         ${this.materialProperties && this.materialProperties.texture_2d ? 'uniform sampler2D u_Sampler;' : ''}
         ${this.materialProperties && this.materialProperties.texture_cube ? 'uniform samplerCube u_Sampler;' : ''}
         ${this.materialProperties.solid ? 'varying vec4 color;': ''}
@@ -278,9 +286,11 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
         ${lightCount > 0 ? 'varying vec3 fL[MAX_LIGHTS];' : ''}
         varying vec3 fN;
         varying vec3 fV;
-        ${this.materialProperties.texture_2d ? 'varying vec2 fTexCoord;': ''}
-        ${this.materialProperties.texture_cube ? 'varying vec3 fTexVector;': ''}
+        // declares the varying variable for the type of texture you are trying to add to the model, if any 
+        ${this.materialProperties && this.materialProperties.texture_2d ? 'varying vec2 fTexCoord;': ''}
+        ${this.materialProperties && this.materialProperties.texture_cube ? 'varying vec3 fTexVector;': ''}
 
+        // calculate the light contributions depending on the light properties 
         vec4 getLightContribution(vec3 fL, mat3 lightProps, vec3 N, vec3 V) {
             vec3 L = normalize(fL);
             vec3 R = reflect(-L, N);
@@ -296,9 +306,9 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
             vec3 N = normalize(fN);
             vec3 V = normalize(fV);
             vec4 tmpColor = ${
-                this.materialProperties.solid ? 'color;' :
-                this.materialProperties.texture_2d ? 'texture2D(u_Sampler, fTexCoord);' :
-                this.materialProperties.texture_cube ?  'textureCube(u_Sampler, fTexVector);' :
+                this.materialProperties && this.materialProperties.solid ? 'color;' :
+                this.materialProperties && this.materialProperties.texture_2d ? 'texture2D(u_Sampler, fTexCoord);' :
+                this.materialProperties && this.materialProperties.texture_cube ?  'textureCube(u_Sampler, fTexVector);' :
                 'vec4(0.0, 0.0, 0.0, 1.0);'
             }
             ${lightCount > 0 ?
@@ -310,54 +320,4 @@ CS336Model.prototype.createFragmentShader = function(lightCount) {
             gl_FragColor.a = 1.0;
         }
     `;
-}
-
- // helper function renders the cube based on the given model transformation
- CS336Model.prototype.drawCube = function(matrix)
-{
-	  // bind the shader
-	  gl.useProgram(lightingShader);
-
-	  // get the index for the a_Position attribute defined in the vertex shader
-	  var positionIndex = gl.getAttribLocation(lightingShader, 'a_Position');
-	  if (positionIndex < 0) {
-	    console.log('Failed to get the storage location of a_Position');
-	    return;
-	  }
-
-	  var normalIndex = gl.getAttribLocation(lightingShader, 'a_Normal');
-	  if (normalIndex < 0) {
-		    console.log('Failed to get the storage location of a_Normal');
-		    return;
-		  }
-
-	  // "enable" the a_position attribute
-	  gl.enableVertexAttribArray(positionIndex);
-	  gl.enableVertexAttribArray(normalIndex);
-
-	  // bind data for points and normals
-	  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-	  gl.vertexAttribPointer(positionIndex, 3, gl.FLOAT, false, 0, 0);
-	  gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
-	  gl.vertexAttribPointer(normalIndex, 3, gl.FLOAT, false, 0, 0);
-	  gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-	  var loc = gl.getUniformLocation(lightingShader, "view");
-	  gl.uniformMatrix4fv(loc, false, view.elements);
-	  loc = gl.getUniformLocation(lightingShader, "projection");
-	  gl.uniformMatrix4fv(loc, false, projection.elements);
-	  loc = gl.getUniformLocation(lightingShader, "u_Color");
-	  gl.uniform4f(loc, 0.0, 1.0, 0.0, 1.0);
-    var loc = gl.getUniformLocation(lightingShader, "lightPosition");
-    gl.uniform4f(loc, 5.0, 10.0, 5.0, 1.0);
-
-	  var modelMatrixloc = gl.getUniformLocation(lightingShader, "model");
-	  var normalMatrixLoc = gl.getUniformLocation(lightingShader, "normalMatrix");
-
-	  gl.uniformMatrix4fv(modelMatrixloc, false, matrix.elements);
-	  gl.uniformMatrix3fv(normalMatrixLoc, false, makeNormalMatrixElements(matrix, view));
-
-	  gl.drawArrays(gl.TRIANGLES, 0, 36);
-
-	  gl.useProgram(null);
 }

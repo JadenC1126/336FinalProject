@@ -17,9 +17,6 @@ var CS336Object = function() // default values
  
    // Position of this object.
    this.position = new THREE.Vector3();
-
-   // function to draw itself 
-  //  this.drawSelf = drawCube();
  
    // Rotation matrix.
    // The three columns of this matrix are the x, y, and z axes

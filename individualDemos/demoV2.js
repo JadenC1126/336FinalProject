@@ -1,15 +1,15 @@
 var gl = getGraphicsContext("theCanvas");
 
-var imagePath = "./textures/check64.png";
-var imagePath2 = "./textures/steve.png";
-var imagePath3 = "./textures/marble.png";
+var imagePath = "../textures/check64.png";
+var imagePath2 = "../textures/steve.png";
+var imagePath3 = "../textures/marble.png";
 var imagePathsCube = [
-    "./textures/px.jpg",
-    "./textures/nx.jpg",
-    "./textures/py.jpg",
-    "./textures/ny.jpg",
-    "./textures/pz.jpg",
-    "./textures/nz.jpg",
+    "../textures/px.jpg",
+    "../textures/nx.jpg",
+    "../textures/py.jpg",
+    "../textures/ny.jpg",
+    "../textures/pz.jpg",
+    "../textures/nz.jpg",
 ];
 var solarDemo = false;
 

@@ -1,14 +1,14 @@
 var gl;
 
-var imagePath = "./textures/check64.png";
-var imagePath2 = "./textures/steve.png";
+var imagePath = "../textures/check64.png";
+var imagePath2 = "../textures/steve.png";
 var imagePathsCube = [
-    "./textures/nx.jpg",
-    "./textures/ny.jpg",
-    "./textures/nz.jpg",
-    "./textures/px.jpg",
-    "./textures/py.jpg",
-    "./textures/pz.jpg",
+    "../textures/nx.jpg",
+    "../textures/ny.jpg",
+    "../textures/nz.jpg",
+    "../textures/px.jpg",
+    "../textures/py.jpg",
+    "../textures/pz.jpg",
 ];
 
 var modelObj;

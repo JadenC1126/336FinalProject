@@ -57,7 +57,7 @@ function main() {
 ```
 
 # Class Diagram
-The diagram itself can be found here: ./class_diagram.uxf. 
+The diagram itself can be found here: ./documentation/class_diagram.uxf. 
 Just add the UMLet extension on VS Code and you will be able to see and edit the diagram. 
 
-![class digram](./textures/CS336ClassDiagram3.png)
+![class digram](./documentation/CS336ClassDiagram3.png)

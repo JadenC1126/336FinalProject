@@ -8,17 +8,17 @@ async function main() {
     const geometry = new THREE.SphereGeometry(1, 10, 10);
 
     const material = new CS336Materials("2D");
-    material.create2DTexture("./textures/check64.png");
+    material.create2DTexture("../textures/check64.png");
     await material.textureAttributes.loadImage();
     material.textureAttributes.createAndLoad();
 
     const material2 = new CS336Materials("2D");
-    material2.create2DTexture("./textures/marble.png");
+    material2.create2DTexture("../textures/marble.png");
     await material2.textureAttributes.loadImage();
     material2.textureAttributes.createAndLoad();
 
     const material3 = new CS336Materials("2D");
-    material3.create2DTexture("./textures/steve.png");
+    material3.create2DTexture("../textures/steve.png");
     await material3.textureAttributes.loadImage();
     material3.textureAttributes.createAndLoad();
 

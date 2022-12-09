@@ -15,14 +15,16 @@ class CS336Materials{
     // for textures 
     texture2D = false;
     textureCube = false;
+    textureAttributes = null;
 
+    // default surface attributes
     surfaceAttributes = new Float32Array([
         1, 1, 1,
         1, 1, 1,
         1, 1, 1,
       ]);
-    textureAttributes = null;
-
+    
+    // boolean that represents if the material should be adjusted 
     adjustSurface = false;
 
     /**

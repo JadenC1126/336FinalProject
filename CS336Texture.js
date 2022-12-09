@@ -3,17 +3,22 @@
  * methods to create and load the texture information into buffers,
  * the texture coordinates or vertices, and the texture handler it creates. 
  */
-class CS336Texture { // THREE materials
-    images = null;
-    textureHandler = null;
-    textureType = null;
-    textureLoader = null;
-    imagePaths = null;
-    loadedImage = false;
-    loadedBuffer = false;
+class CS336Texture { 
 
-    vertices = null;
-    // solid vs not solid
+    //the path to the image if its 2D or images if its a texture cube
+    imagePaths = null;
+
+    // the loaded image instance 
+    images = null;
+
+    // the webgl handler that is created once the texture itself is loaded 
+    textureHandler = null;
+    
+    // boolean that represents if the image is loaded 
+    loadedImage = false;
+
+    // boolean that represents if the texture has been loaded
+    loadedBuffer = false;
     
 
     /**
@@ -26,12 +31,8 @@ class CS336Texture { // THREE materials
         this.type = type;
         this.vertices = vertices;
         if(this.type === "2D") {
-            this.textureType = "sampler2D";
-            this.textureLoader = "texture2D";
             this.imagePaths = "";
         } else {
-            this.textureType = "samplerCube";
-            this.textureLoader = "textureCube";
             this.imagePaths = [];
         }
     }

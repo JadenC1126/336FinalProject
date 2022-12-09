@@ -115,7 +115,7 @@ async function handleKeyPress(event) {
                     0.7, 0.0, 0.0, // diffuse
                     0.7, 0.0, 0.0 // specular
                 ])
-            }))
+            }));
             console.log(scene)
             break;
         case '2':
@@ -129,7 +129,7 @@ async function handleKeyPress(event) {
                     0.0, 0.7, 0.0, // diffuse
                     0.0, 0.7, 0.0 // specular
                 ])
-            }))
+            }));
             scene.addLight(new CS336Light({
                 x: 1.25,
                 y: 2.5,
@@ -138,8 +138,8 @@ async function handleKeyPress(event) {
                     0.2, 0.2, 0.2, // ambient
                     0.0, 0.0, 0.7, // diffuse
                     0.0, 0.0, 0.7 // specular
-                    ])
-            }))
+                ])
+            }));
             break;
         case '3':
             solarDemo = false;
@@ -192,7 +192,7 @@ async function handleKeyPress(event) {
                     0.0, 0.0, 0.7, // diffuse
                     0.0, 0.0, 0.7 // specular
                 ])
-            }))
+            }));
             break;
         case '6':
             solarDemo = true;

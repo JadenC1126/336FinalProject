@@ -1,12 +1,16 @@
-// Defines a scene - a container for objects, lights, and a camera
+/**
+ * CS336Scene
+ * Encapsulates a scene, basically a container for all objects,
+ * lights, and a camera within a scene.
+ */
 class CS336Scene {
-    camera = null;
-    objects = []; // Array of CS336Model
-    lights = []; // Array of CS336Light
-    withAxis = false; // Draw the axis?
-    axisShader = null;
+    camera = null;     // Camera for the scene
+    objects = [];      // Array of CS336Model
+    lights = [];       // Array of CS336Light
+    withAxis = false;  // Draw the axis?
+    axisShader = null; // Shader for drawing the axis
 
-    // Axis
+    // Axis vertices
     axisVertices = new Float32Array([
         0.0, 0.0, 0.0,
         1.5, 0.0, 0.0,
@@ -25,10 +29,17 @@ class CS336Scene {
         0.0, 0.0, 1.0, 1.0,
         0.0, 0.0, 1.0, 1.0,
     ]);
+
+    // WebGL buffers
     vAxisBuffer = null;
     cAxisBuffer = null;
 
-    // Create with default camera options
+    /**
+     * Creates a new CS336Scene.
+     * Optionally draw the axis if specified.
+     * @param {Object} options
+     * @param {Boolean} options.withAxis 
+     */
     constructor({ withAxis } = { withAxis: false }) {
         this.camera = new Camera(30, 1.5);
         this.camera.setPosition(5,2,5);
@@ -36,23 +47,33 @@ class CS336Scene {
         this.withAxis = withAxis;
     }
 
-    // Get the scene's camera
+    /**
+     * Get the camera for the scene.
+     */
     get camera() {
         return this.camera;
     }
 
-    // Add a new object to the scene
+    /**
+     * Add a new object to the scene.
+     * @param {CS336Model} object 
+     */
     addObject(object) {
         this.objects.push(object);
     }
 
-    // Add a new light to the scene
+    /**
+     * Add a new light to the scene.
+     * @param {CS336Light} light 
+     */
     addLight(light) {
         this.lights.push(light);
     }
 
-    // Render the scene, optionally with axis,
-    // then render each of the objects
+    /**
+     * Render the scene with a given graphics context
+     * @param {WebGLRenderingContext} gl
+     */
     renderScene(gl) {
         gl.clearColor(0.0, 0.8, 0.8, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -62,7 +83,11 @@ class CS336Scene {
         })
     }
 
-    // Helper for drawing the axis
+    /**
+     * Draw the axis.
+     * @param {WebGLRenderingContext} gl
+     * @private
+     */
     drawAxis(gl) {
         if( this.axisShader === null ) {
             const vShader = `
